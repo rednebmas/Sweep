@@ -8,6 +8,8 @@ import SwiftUI
 struct EmailDetailView: View {
     let thread: EmailThread
     @Environment(\.dismiss) private var dismiss
+    @State private var emailBody: String?
+    @State private var isLoading = true
 
     var body: some View {
         NavigationStack {
@@ -27,6 +29,9 @@ struct EmailDetailView: View {
                         dismiss()
                     }
                 }
+            }
+            .task {
+                await loadBody()
             }
         }
     }
@@ -63,8 +68,18 @@ struct EmailDetailView: View {
 
     private var bodySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(thread.snippet)
-                .font(.body)
+            if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+            } else if let body = emailBody, !body.isEmpty {
+                Text(body)
+                    .font(.body)
+            } else {
+                Text(thread.snippet)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+            }
 
             if thread.messageCount > 1 {
                 Text("\(thread.messageCount) messages in this thread")
@@ -73,5 +88,14 @@ struct EmailDetailView: View {
                     .padding(.top, 8)
             }
         }
+    }
+
+    private func loadBody() async {
+        do {
+            emailBody = try await GmailService.shared.fetchEmailBody(thread.id)
+        } catch {
+            emailBody = nil
+        }
+        isLoading = false
     }
 }

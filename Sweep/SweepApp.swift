@@ -32,7 +32,7 @@ struct SweepApp: App {
         .onChange(of: scenePhase) {
             if scenePhase == .background {
                 Task {
-                    await viewModel.archiveNonKeptThreads()
+                    await viewModel.processNonKeptThreads()
                 }
             }
         }

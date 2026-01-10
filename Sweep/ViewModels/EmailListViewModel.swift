@@ -37,20 +37,29 @@ class EmailListViewModel: ObservableObject {
         threads[index].isKept.toggle()
     }
 
-    func archiveNonKeptThreads() async {
-        let toArchive = threads.filter { !$0.isKept }
-        guard !toArchive.isEmpty else { return }
+    func processNonKeptThreads() async {
+        let toProcess = threads.filter { !$0.isKept }
+        guard !toProcess.isEmpty else {
+            threads.removeAll()
+            return
+        }
 
-        let threadIds = toArchive.map(\.id)
+        let threadIds = toProcess.map(\.id)
 
         do {
-            try await gmailService.archiveAndMarkRead(threadIds)
-            let session = ArchiveSession(archivedThreadIds: threadIds)
-            appState.addArchiveSession(session)
-            threads.removeAll { !$0.isKept }
+            if appState.archiveOnBackground {
+                try await gmailService.archiveAndMarkRead(threadIds)
+                let session = ArchiveSession(archivedThreadIds: threadIds)
+                appState.addArchiveSession(session)
+            } else {
+                try await gmailService.markReadOnly(threadIds)
+            }
         } catch {
             self.error = error
         }
+
+        // Clear all threads after processing
+        threads.removeAll()
     }
 
     func blockSender(_ thread: EmailThread) async {

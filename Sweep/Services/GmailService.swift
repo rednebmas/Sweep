@@ -115,8 +115,8 @@ class GmailService: ObservableObject {
                 }
             }
 
-            // Sort oldest first
-            return threads.sorted { $0.timestamp < $1.timestamp }
+            // Sort newest first
+            return threads.sorted { $0.timestamp > $1.timestamp }
         }
     }
 
@@ -202,6 +202,10 @@ class GmailService: ObservableObject {
 
     func archiveAndMarkRead(_ threadIds: [String]) async throws {
         try await batchModifyThreads(threadIds, addLabels: [], removeLabels: ["INBOX", "UNREAD"])
+    }
+
+    func markReadOnly(_ threadIds: [String]) async throws {
+        try await batchModifyThreads(threadIds, addLabels: [], removeLabels: ["UNREAD"])
     }
 
     private func batchModifyThreads(_ threadIds: [String], addLabels: [String], removeLabels: [String]) async throws {
@@ -298,6 +302,102 @@ class GmailService: ObservableObject {
         }
         return thread
     }
+
+    func fetchEmailBody(_ threadId: String) async throws -> String {
+        guard isAuthenticated else {
+            throw GmailError.notAuthenticated
+        }
+
+        let url = URL(string: "\(baseURL)/threads/\(threadId)?format=full")!
+        let request = try await authorizedRequest(url)
+
+        let response: ThreadFullResponse = try await performRequest(request)
+
+        guard let messages = response.messages, let firstMessage = messages.first else {
+            return ""
+        }
+
+        return extractBody(from: firstMessage.payload)
+    }
+
+    private func extractBody(from payload: PayloadFullResponse?) -> String {
+        guard let payload = payload else { return "" }
+
+        // Check for plain text body directly
+        if payload.mimeType == "text/plain", let data = payload.body?.data {
+            return decodeBase64(data)
+        }
+
+        // Check for HTML body
+        if payload.mimeType == "text/html", let data = payload.body?.data {
+            return stripHTML(decodeBase64(data))
+        }
+
+        // Check parts for multipart messages
+        if let parts = payload.parts {
+            // Prefer plain text
+            if let textPart = parts.first(where: { $0.mimeType == "text/plain" }),
+               let data = textPart.body?.data {
+                return decodeBase64(data)
+            }
+            // Fall back to HTML
+            if let htmlPart = parts.first(where: { $0.mimeType == "text/html" }),
+               let data = htmlPart.body?.data {
+                return stripHTML(decodeBase64(data))
+            }
+            // Recurse into nested parts
+            for part in parts {
+                let body = extractBody(from: part)
+                if !body.isEmpty { return body }
+            }
+        }
+
+        return ""
+    }
+
+    private func decodeBase64(_ encoded: String) -> String {
+        // Gmail uses URL-safe base64
+        let base64 = encoded
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+
+        guard let data = Data(base64Encoded: base64),
+              let string = String(data: data, encoding: .utf8) else {
+            return ""
+        }
+        return string
+    }
+
+    private func stripHTML(_ html: String) -> String {
+        // Basic HTML stripping - remove tags and decode entities
+        var text = html
+            .replacingOccurrences(of: "<br>", with: "\n", options: .caseInsensitive)
+            .replacingOccurrences(of: "<br/>", with: "\n", options: .caseInsensitive)
+            .replacingOccurrences(of: "<br />", with: "\n", options: .caseInsensitive)
+            .replacingOccurrences(of: "</p>", with: "\n\n", options: .caseInsensitive)
+            .replacingOccurrences(of: "</div>", with: "\n", options: .caseInsensitive)
+
+        // Remove all HTML tags
+        while let range = text.range(of: "<[^>]+>", options: .regularExpression) {
+            text.removeSubrange(range)
+        }
+
+        // Decode common HTML entities
+        text = text
+            .replacingOccurrences(of: "&nbsp;", with: " ")
+            .replacingOccurrences(of: "&amp;", with: "&")
+            .replacingOccurrences(of: "&lt;", with: "<")
+            .replacingOccurrences(of: "&gt;", with: ">")
+            .replacingOccurrences(of: "&quot;", with: "\"")
+            .replacingOccurrences(of: "&#39;", with: "'")
+
+        // Clean up whitespace
+        let lines = text.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        return lines.joined(separator: "\n\n")
+    }
 }
 
 // MARK: - API Response Types
@@ -355,4 +455,24 @@ private struct FilterAction: Codable {
 
 private struct FilterResponse: Codable {
     let id: String?
+}
+
+private struct ThreadFullResponse: Codable {
+    let id: String
+    let messages: [MessageFullResponse]?
+}
+
+private struct MessageFullResponse: Codable {
+    let id: String
+    let payload: PayloadFullResponse?
+}
+
+private struct PayloadFullResponse: Codable {
+    let mimeType: String?
+    let body: BodyResponse?
+    let parts: [PayloadFullResponse]?
+}
+
+private struct BodyResponse: Codable {
+    let data: String?
 }

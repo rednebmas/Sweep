@@ -15,6 +15,7 @@ struct SettingsView: View {
         List {
             accountSection
             displaySection
+            behaviorSection
             undoSection
             aboutSection
         }
@@ -58,6 +59,15 @@ struct SettingsView: View {
                     Text("\(lines)").tag(lines)
                 }
             }
+        }
+    }
+
+    private var behaviorSection: some View {
+        Section("Behavior") {
+            Toggle("Archive emails", isOn: $appState.archiveOnBackground)
+            Text("When disabled, emails are only marked as read. When enabled, non-kept emails are also archived.")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
 

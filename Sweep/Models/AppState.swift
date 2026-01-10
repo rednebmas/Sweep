@@ -31,12 +31,19 @@ class AppState: ObservableObject {
         }
     }
 
+    @Published var archiveOnBackground: Bool {
+        didSet {
+            UserDefaults.standard.set(archiveOnBackground, forKey: "archiveOnBackground")
+        }
+    }
+
     private init() {
         let savedTimestamp = UserDefaults.standard.object(forKey: "lastOpenedTimestamp") as? Date
         self.lastOpenedTimestamp = savedTimestamp
         self.isFirstLaunch = savedTimestamp == nil
         self.archiveSessions = Self.loadArchiveSessions()
         self.snippetLines = UserDefaults.standard.object(forKey: "snippetLines") as? Int ?? 3
+        self.archiveOnBackground = UserDefaults.standard.bool(forKey: "archiveOnBackground") // defaults to false
     }
 
     func recordAppOpen() {
