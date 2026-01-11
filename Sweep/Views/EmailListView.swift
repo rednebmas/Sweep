@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct EmailListView: View {
     @EnvironmentObject var viewModel: EmailListViewModel
@@ -32,6 +33,7 @@ struct EmailListView: View {
                 }
             }
             .navigationTitle("Sweep")
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink(destination: SettingsView()) {
@@ -71,67 +73,71 @@ struct EmailListView: View {
     }
 
     private var keptBanner: some View {
-        Button {
-            showingKeptSheet = true
-        } label: {
-            HStack {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-                Text("\(keptThreads.count) kept")
-                    .fontWeight(.medium)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        VStack(spacing: 0) {
+            Button {
+                showingKeptSheet = true
+            } label: {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("\(keptThreads.count) kept")
+                        .fontWeight(.medium)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                .background(Color.green.opacity(0.1))
             }
-            .padding(.horizontal)
-            .padding(.vertical, 10)
-            .background(Color.green.opacity(0.1))
+            .buttonStyle(.plain)
+            Divider()
         }
-        .buttonStyle(.plain)
         .sheet(isPresented: $showingKeptSheet) {
             KeptEmailsSheet(threads: keptThreads, onSelect: { selectedThread = $0 })
         }
     }
 
+    private func makeMenu(for thread: EmailThread) -> UIMenu {
+        var actions: [UIAction] = [
+            UIAction(title: "Block Sender", image: UIImage(systemName: "nosign")) { _ in
+                Task { await viewModel.blockSender(thread) }
+            },
+            UIAction(title: "Mark as Spam", image: UIImage(systemName: "exclamationmark.triangle")) { _ in
+                Task { await viewModel.markAsSpam(thread) }
+            }
+        ]
+        if thread.unsubscribeURL != nil {
+            actions.append(UIAction(title: "Unsubscribe", image: UIImage(systemName: "bell.slash")) { _ in
+                viewModel.unsubscribe(thread)
+            })
+        }
+        return UIMenu(children: actions)
+    }
+
     private var emailList: some View {
         List {
             ForEach(viewModel.threads) { thread in
-                EmailRowView(thread: thread, snippetLines: appState.snippetLines)
-                    .listRowInsets(EdgeInsets())
-                    .listRowSeparator(.visible)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button {
-                            viewModel.toggleKeep(thread)
-                        } label: {
-                            Label("Keep", systemImage: "checkmark")
-                        }
-                        .tint(.green)
+                ContextMenuWrapper(
+                    content: EmailRowView(thread: thread, snippetLines: appState.snippetLines),
+                    preview: { EmailPreviewView(thread: thread) },
+                    menu: { makeMenu(for: thread) },
+                    onPreviewTap: { selectedThread = thread }
+                )
+                .listRowInsets(EdgeInsets())
+                .listRowSeparatorTint(Color.gray.opacity(0.3))
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button {
+                        viewModel.toggleKeep(thread)
+                    } label: {
+                        Label("Keep", systemImage: "checkmark")
                     }
-                    .contextMenu {
-                        Button {
-                            Task { await viewModel.blockSender(thread) }
-                        } label: {
-                            Label("Block Sender", systemImage: "nosign")
-                        }
-                        Button {
-                            Task { await viewModel.markAsSpam(thread) }
-                        } label: {
-                            Label("Mark as Spam", systemImage: "exclamationmark.triangle")
-                        }
-                        if thread.unsubscribeURL != nil {
-                            Button {
-                                viewModel.unsubscribe(thread)
-                            } label: {
-                                Label("Unsubscribe", systemImage: "bell.slash")
-                            }
-                        }
-                    } preview: {
-                        EmailPreviewView(thread: thread)
-                    }
-                    .onTapGesture {
-                        selectedThread = thread
-                    }
+                    .tint(.green)
+                }
+                .onTapGesture {
+                    selectedThread = thread
+                }
             }
         }
         .listStyle(.plain)

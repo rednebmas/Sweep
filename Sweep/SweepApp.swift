@@ -29,13 +29,14 @@ struct SweepApp: App {
                     GIDSignIn.sharedInstance.handle(url)
                 }
         }
-        .onChange(of: scenePhase) {
-            if scenePhase == .background {
-                Task {
-                    await viewModel.processNonKeptThreads()
-                }
-            }
-        }
+        // DISABLED FOR TESTING
+        // .onChange(of: scenePhase) {
+        //     if scenePhase == .background {
+        //         Task {
+        //             await viewModel.processNonKeptThreads()
+        //         }
+        //     }
+        // }
     }
 }
 

@@ -4,11 +4,18 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct EmailPreviewView: View {
     let thread: EmailThread
     @State private var emailBody: String?
     @State private var isLoading = true
+    private let initTime = Date()
+
+    init(thread: EmailThread) {
+        self.thread = thread
+        print("[Preview] Init for thread: \(thread.id)")
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -17,7 +24,6 @@ struct EmailPreviewView: View {
             bodyContent
         }
         .padding()
-        .frame(width: 340, height: 400)
         .task {
             await loadBody()
         }
@@ -38,7 +44,8 @@ struct EmailPreviewView: View {
         Group {
             if isLoading {
                 ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 40)
             } else if let body = emailBody, !body.isEmpty {
                 HTMLView(html: body)
             } else {
@@ -47,22 +54,17 @@ struct EmailPreviewView: View {
                     .foregroundColor(.secondary)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private func loadBody() async {
-        #if DEBUG
-        if MockDataProvider.useMockData {
-            emailBody = MockDataProvider.mockEmailBody(for: thread.id)
-            isLoading = false
-            return
-        }
-        #endif
-
         do {
             emailBody = try await GmailService.shared.fetchEmailBody(thread.id)
         } catch {
             emailBody = nil
         }
         isLoading = false
+        let elapsed = Date().timeIntervalSince(initTime) * 1000
+        print("[Preview] Loaded in \(Int(elapsed))ms")
     }
 }

@@ -25,6 +25,7 @@ struct ThreadDetailResponse: Codable {
 
 struct MessageResponse: Codable {
     let id: String
+    let snippet: String?
     let payload: PayloadResponse?
 }
 

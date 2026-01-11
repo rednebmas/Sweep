@@ -15,7 +15,7 @@ extension GmailService {
         }
 
         let timestamp = Int(date.timeIntervalSince1970)
-        let query = "after:\(timestamp) in:inbox"
+        let query = "after:\(timestamp) in:inbox is:unread"
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
 
         let url = URL(string: "\(baseURL)/threads?q=\(encodedQuery)&maxResults=100")!
@@ -47,7 +47,6 @@ extension GmailService {
     func fetchThreadDetail(_ threadId: String) async throws -> EmailThread? {
         let url = URL(string: "\(baseURL)/threads/\(threadId)?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date&metadataHeaders=List-Unsubscribe")!
         let request = try await authorizedRequest(url)
-
         let response: ThreadDetailResponse = try await performRequest(request)
 
         guard let firstMessage = response.messages?.first else {
@@ -68,11 +67,12 @@ extension GmailService {
         let (fromName, fromEmail) = parseFromHeader(fromHeader)
         let timestamp = parseDateHeader(dateHeader)
         let unsubscribeURL = parseUnsubscribeHeader(unsubscribeHeader)
+        let snippet = firstMessage.snippet ?? response.snippet ?? ""
 
         return EmailThread(
             id: response.id,
             subject: subject,
-            snippet: response.snippet ?? "",
+            snippet: snippet,
             from: fromName,
             fromEmail: fromEmail,
             timestamp: timestamp,

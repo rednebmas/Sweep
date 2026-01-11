@@ -32,11 +32,24 @@ class GmailService: ObservableObject {
 
     let baseURL = "https://gmail.googleapis.com/gmail/v1/users/me"
     private let authService = AuthService.shared
+    private var bodyCache: [String: String] = [:]
 
     var isAuthenticated: Bool { authService.isAuthenticated && authService.accessToken != nil }
     var userEmail: String? { authService.userEmail }
 
     private init() {}
+
+    func getCachedBody(_ threadId: String) -> String? {
+        bodyCache[threadId]
+    }
+
+    func cacheBody(_ threadId: String, body: String) {
+        bodyCache[threadId] = body
+    }
+
+    func clearCache() {
+        bodyCache.removeAll()
+    }
 
     // MARK: - Auth Passthrough
 

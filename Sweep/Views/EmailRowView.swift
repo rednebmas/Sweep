@@ -18,6 +18,7 @@ struct EmailRowView: View {
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
         .background(thread.isKept ? Color.green.opacity(0.15) : Color.clear)
+        .clipped()
         .contentShape(Rectangle())
     }
 
@@ -29,11 +30,14 @@ struct EmailRowView: View {
             Text(thread.cleanSubject)
                 .font(.subheadline)
                 .lineLimit(1)
-            Text(thread.snippet)
-                .font(.footnote)
-                .foregroundColor(.secondary)
-                .lineLimit(snippetLines)
+            if !thread.snippet.isEmpty {
+                Text(thread.snippet)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .lineLimit(snippetLines)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var metadata: some View {
@@ -57,42 +61,4 @@ struct EmailRowView: View {
             }
         }
     }
-}
-
-#Preview("Standard") {
-    EmailRowView(
-        thread: .mock(
-            subject: "Your Amazon order has shipped!",
-            snippet: "Your package with Echo Dot (5th Gen) is on its way...",
-            from: "Amazon.com",
-            fromEmail: "ship-confirm@amazon.com"
-        ),
-        snippetLines: 2
-    )
-}
-
-#Preview("With Attachments & Thread") {
-    EmailRowView(
-        thread: .mock(
-            subject: "Re: Q4 Planning Meeting",
-            snippet: "Sounds good, let's sync up tomorrow at 2pm...",
-            from: "Jennifer Martinez",
-            hasAttachments: true,
-            messageCount: 4
-        ),
-        snippetLines: 2
-    )
-}
-
-#Preview("Kept") {
-    EmailRowView(
-        thread: .mock(
-            subject: "Important: Action required",
-            snippet: "Please review the attached document...",
-            from: "HR Department",
-            hasAttachments: true,
-            isKept: true
-        ),
-        snippetLines: 2
-    )
 }

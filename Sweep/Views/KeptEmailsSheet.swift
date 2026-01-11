@@ -10,6 +10,7 @@ struct KeptEmailsSheet: View {
     let onSelect: (EmailThread) -> Void
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var appState = AppState.shared
+    @State private var selectedThread: EmailThread?
 
     var body: some View {
         NavigationStack {
@@ -18,8 +19,7 @@ struct KeptEmailsSheet: View {
                     EmailRowView(thread: thread, snippetLines: appState.snippetLines)
                         .listRowInsets(EdgeInsets())
                         .onTapGesture {
-                            dismiss()
-                            onSelect(thread)
+                            selectedThread = thread
                         }
                 }
             }
@@ -30,6 +30,9 @@ struct KeptEmailsSheet: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .sheet(item: $selectedThread) { thread in
+                EmailDetailView(thread: thread)
             }
         }
     }

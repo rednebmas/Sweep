@@ -19,18 +19,11 @@ class EmailListViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        #if DEBUG
-        if MockDataProvider.useMockData {
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            threads = MockDataProvider.mockThreads
-            return
-        }
-        #endif
-
         do {
             let fetchDate = appState.getEmailFetchDate()
             threads = try await gmailService.fetchThreads(since: fetchDate)
-            appState.recordAppOpen()
+            gmailService.prefetchBodies(for: threads.map(\.id))
+            // DISABLED FOR TESTING: appState.recordAppOpen()
         } catch {
             self.error = error
         }
@@ -53,19 +46,6 @@ class EmailListViewModel: ObservableObject {
         }
 
         let threadIds = toProcess.map(\.id)
-
-        #if DEBUG
-        if MockDataProvider.useMockData {
-            try? await Task.sleep(nanoseconds: 300_000_000)
-            let session = ArchiveSession(
-                archivedThreadIds: threadIds,
-                wasArchived: appState.archiveOnBackground
-            )
-            appState.addArchiveSession(session)
-            threads.removeAll()
-            return
-        }
-        #endif
 
         do {
             if appState.archiveOnBackground {

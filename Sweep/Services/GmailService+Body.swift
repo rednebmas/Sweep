@@ -7,13 +7,32 @@ import Foundation
 
 extension GmailService {
 
-    func fetchEmailBody(_ threadId: String) async throws -> String {
-        #if DEBUG
-        if MockDataProvider.useMockData {
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            return MockDataProvider.mockEmailBody(for: threadId)
+    func prefetchBodies(for threadIds: [String]) {
+        let count = min(threadIds.count, 5)
+        print("[Prefetch] Starting prefetch for \(count) emails")
+        Task.detached { [weak self] in
+            await withTaskGroup(of: Void.self) { group in
+                for threadId in threadIds.prefix(5) {
+                    group.addTask {
+                        do {
+                            _ = try await self?.fetchEmailBody(threadId)
+                            print("[Prefetch] Fetched \(threadId)")
+                        } catch {
+                            print("[Prefetch] Error fetching \(threadId): \(error)")
+                        }
+                    }
+                }
+            }
+            print("[Prefetch] Completed prefetch for \(count) emails")
         }
-        #endif
+    }
+
+    func fetchEmailBody(_ threadId: String) async throws -> String {
+        if let cached = getCachedBody(threadId) {
+            print("[Body] Cache HIT for \(threadId)")
+            return cached
+        }
+        print("[Body] Cache MISS for \(threadId) - fetching from network")
 
         guard isAuthenticated else {
             throw GmailError.notAuthenticated
@@ -40,6 +59,7 @@ extension GmailService {
             }
         }
 
+        cacheBody(threadId, body: html)
         return html
     }
 

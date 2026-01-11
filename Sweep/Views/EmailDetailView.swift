@@ -71,6 +71,7 @@ struct EmailDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let body = emailBody, !body.isEmpty {
             HTMLView(html: body)
+                .padding([.horizontal, .top])
         } else {
             Text(thread.snippet)
                 .font(.body)
