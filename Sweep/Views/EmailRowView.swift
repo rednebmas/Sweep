@@ -24,13 +24,13 @@ struct EmailRowView: View {
     private var emailContent: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(thread.from)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.headline)
                 .lineLimit(1)
             Text(thread.cleanSubject)
-                .font(.system(size: 15))
+                .font(.subheadline)
                 .lineLimit(1)
             Text(thread.snippet)
-                .font(.system(size: 14))
+                .font(.footnote)
                 .foregroundColor(.secondary)
                 .lineLimit(snippetLines)
         }
@@ -39,16 +39,16 @@ struct EmailRowView: View {
     private var metadata: some View {
         VStack(alignment: .trailing, spacing: 4) {
             Text(thread.displayDate)
-                .font(.system(size: 13))
+                .font(.caption)
                 .foregroundColor(.secondary)
             if thread.hasAttachments {
                 Image(systemName: "paperclip")
-                    .font(.system(size: 12))
+                    .font(.caption2)
                     .foregroundColor(.secondary)
             }
             if thread.messageCount > 1 {
                 Text("\(thread.messageCount)")
-                    .font(.system(size: 12))
+                    .font(.caption2)
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
