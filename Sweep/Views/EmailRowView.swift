@@ -58,3 +58,52 @@ struct EmailRowView: View {
         }
     }
 }
+
+#Preview("Standard") {
+    EmailRowView(
+        thread: EmailThread(
+            id: "1",
+            subject: "Your Amazon order has shipped!",
+            snippet: "Your package with Echo Dot (5th Gen) is on its way. Track your package to see the delivery status...",
+            from: "Amazon.com",
+            fromEmail: "ship-confirm@amazon.com",
+            timestamp: Date().addingTimeInterval(-3600),
+            hasAttachments: false,
+            messageCount: 1
+        ),
+        snippetLines: 2
+    )
+}
+
+#Preview("With Attachments & Thread") {
+    EmailRowView(
+        thread: EmailThread(
+            id: "2",
+            subject: "Re: Q4 Planning Meeting - Updated projections attached",
+            snippet: "Sounds good, let's sync up tomorrow at 2pm. I'll send a calendar invite shortly. Can you also bring the updated projections?",
+            from: "Jennifer Martinez",
+            fromEmail: "j.martinez@techcorp.com",
+            timestamp: Date().addingTimeInterval(-86400),
+            hasAttachments: true,
+            messageCount: 4
+        ),
+        snippetLines: 2
+    )
+}
+
+#Preview("Kept") {
+    EmailRowView(
+        thread: EmailThread(
+            id: "3",
+            subject: "Important: Action required",
+            snippet: "Please review the attached document and provide your feedback by end of day Friday.",
+            from: "HR Department",
+            fromEmail: "hr@company.com",
+            timestamp: Date(),
+            hasAttachments: true,
+            messageCount: 1,
+            isKept: true
+        ),
+        snippetLines: 2
+    )
+}

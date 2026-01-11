@@ -8,6 +8,13 @@ import Foundation
 extension GmailService {
 
     func fetchEmailBody(_ threadId: String) async throws -> String {
+        #if DEBUG
+        if MockDataProvider.useMockData {
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            return MockDataProvider.mockEmailBody(for: threadId)
+        }
+        #endif
+
         guard isAuthenticated else {
             throw GmailError.notAuthenticated
         }
