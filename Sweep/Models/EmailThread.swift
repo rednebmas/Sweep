@@ -6,7 +6,7 @@
 import Foundation
 
 struct EmailThread: Identifiable, Codable, Hashable {
-    let id: String              // Gmail thread ID
+    let id: String
     let subject: String
     let snippet: String
     let from: String
@@ -14,6 +14,7 @@ struct EmailThread: Identifiable, Codable, Hashable {
     let timestamp: Date
     let hasAttachments: Bool
     let messageCount: Int
+    let unsubscribeURL: URL?
     var isKept: Bool = false
 
     // For display
@@ -57,6 +58,7 @@ extension EmailThread {
         timestamp: Date = Date(),
         hasAttachments: Bool = false,
         messageCount: Int = 1,
+        unsubscribeURL: URL? = nil,
         isKept: Bool = false
     ) -> EmailThread {
         EmailThread(
@@ -68,6 +70,7 @@ extension EmailThread {
             timestamp: timestamp,
             hasAttachments: hasAttachments,
             messageCount: messageCount,
+            unsubscribeURL: unsubscribeURL,
             isKept: isKept
         )
     }

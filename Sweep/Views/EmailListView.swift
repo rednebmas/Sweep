@@ -9,8 +9,6 @@ struct EmailListView: View {
     @EnvironmentObject var viewModel: EmailListViewModel
     @ObservedObject private var appState = AppState.shared
     @State private var selectedThread: EmailThread?
-    @State private var showingActionSheet = false
-    @State private var actionSheetThread: EmailThread?
     @State private var showingKeptSheet = false
 
     private var keptThreads: [EmailThread] {
@@ -47,23 +45,6 @@ struct EmailListView: View {
         }
         .sheet(item: $selectedThread) { thread in
             EmailDetailView(thread: thread)
-        }
-        .confirmationDialog(
-            actionSheetThread?.cleanSubject ?? "Actions",
-            isPresented: $showingActionSheet,
-            titleVisibility: .visible,
-            presenting: actionSheetThread
-        ) { thread in
-            Button("Block Sender") {
-                Task { await viewModel.blockSender(thread) }
-            }
-            Button("Mark as Spam") {
-                Task { await viewModel.markAsSpam(thread) }
-            }
-            Button("Unsubscribe") {
-                Task { await viewModel.unsubscribe(thread) }
-            }
-            Button("Cancel", role: .cancel) {}
         }
         .onAppear {
             if viewModel.threads.isEmpty {
@@ -127,12 +108,29 @@ struct EmailListView: View {
                         }
                         .tint(.green)
                     }
+                    .contextMenu {
+                        Button {
+                            Task { await viewModel.blockSender(thread) }
+                        } label: {
+                            Label("Block Sender", systemImage: "nosign")
+                        }
+                        Button {
+                            Task { await viewModel.markAsSpam(thread) }
+                        } label: {
+                            Label("Mark as Spam", systemImage: "exclamationmark.triangle")
+                        }
+                        if thread.unsubscribeURL != nil {
+                            Button {
+                                viewModel.unsubscribe(thread)
+                            } label: {
+                                Label("Unsubscribe", systemImage: "bell.slash")
+                            }
+                        }
+                    } preview: {
+                        EmailPreviewView(thread: thread)
+                    }
                     .onTapGesture {
                         selectedThread = thread
-                    }
-                    .onLongPressGesture {
-                        actionSheetThread = thread
-                        showingActionSheet = true
                     }
             }
         }

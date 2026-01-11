@@ -100,9 +100,6 @@ extension GmailService {
         let _: FilterResponse = try await performRequest(request)
     }
 
-    func unsubscribe(_ threadId: String) async throws {
-        try await archiveThreads([threadId])
-    }
 
     // MARK: - Restore (Undo)
 

@@ -103,12 +103,8 @@ class EmailListViewModel: ObservableObject {
         }
     }
 
-    func unsubscribe(_ thread: EmailThread) async {
-        do {
-            try await gmailService.unsubscribe(thread.id)
-            threads.removeAll { $0.id == thread.id }
-        } catch {
-            self.error = error
-        }
+    func unsubscribe(_ thread: EmailThread) {
+        guard let url = thread.unsubscribeURL else { return }
+        UIApplication.shared.open(url)
     }
 }

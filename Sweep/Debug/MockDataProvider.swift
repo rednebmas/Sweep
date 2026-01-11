@@ -21,7 +21,8 @@ enum MockDataProvider {
                 fromEmail: "ship-confirm@amazon.com",
                 timestamp: Date().addingTimeInterval(-1800),
                 hasAttachments: false,
-                messageCount: 1
+                messageCount: 1,
+                unsubscribeURL: URL(string: "https://amazon.com/unsubscribe")
             ),
             EmailThread(
                 id: "mock_2",
@@ -31,7 +32,8 @@ enum MockDataProvider {
                 fromEmail: "j.martinez@techcorp.com",
                 timestamp: Date().addingTimeInterval(-3600),
                 hasAttachments: false,
-                messageCount: 4
+                messageCount: 4,
+                unsubscribeURL: nil
             ),
             EmailThread(
                 id: "mock_3",
@@ -41,7 +43,8 @@ enum MockDataProvider {
                 fromEmail: "noreply@uber.com",
                 timestamp: Date().addingTimeInterval(-7200),
                 hasAttachments: true,
-                messageCount: 1
+                messageCount: 1,
+                unsubscribeURL: URL(string: "https://uber.com/unsubscribe")
             ),
             EmailThread(
                 id: "mock_4",
@@ -51,7 +54,8 @@ enum MockDataProvider {
                 fromEmail: "notifications@github.com",
                 timestamp: Date().addingTimeInterval(-10800),
                 hasAttachments: false,
-                messageCount: 1
+                messageCount: 1,
+                unsubscribeURL: URL(string: "https://github.com/settings/notifications")
             ),
             EmailThread(
                 id: "mock_5",
@@ -61,7 +65,8 @@ enum MockDataProvider {
                 fromEmail: "mike.chen@gmail.com",
                 timestamp: Date().addingTimeInterval(-14400),
                 hasAttachments: true,
-                messageCount: 2
+                messageCount: 2,
+                unsubscribeURL: nil
             ),
             EmailThread(
                 id: "mock_6",
@@ -71,7 +76,8 @@ enum MockDataProvider {
                 fromEmail: "united@united.com",
                 timestamp: Date().addingTimeInterval(-28800),
                 hasAttachments: false,
-                messageCount: 1
+                messageCount: 1,
+                unsubscribeURL: URL(string: "https://united.com/preferences")
             ),
         ]
     }

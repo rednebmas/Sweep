@@ -61,15 +61,11 @@ struct EmailRowView: View {
 
 #Preview("Standard") {
     EmailRowView(
-        thread: EmailThread(
-            id: "1",
+        thread: .mock(
             subject: "Your Amazon order has shipped!",
-            snippet: "Your package with Echo Dot (5th Gen) is on its way. Track your package to see the delivery status...",
+            snippet: "Your package with Echo Dot (5th Gen) is on its way...",
             from: "Amazon.com",
-            fromEmail: "ship-confirm@amazon.com",
-            timestamp: Date().addingTimeInterval(-3600),
-            hasAttachments: false,
-            messageCount: 1
+            fromEmail: "ship-confirm@amazon.com"
         ),
         snippetLines: 2
     )
@@ -77,13 +73,10 @@ struct EmailRowView: View {
 
 #Preview("With Attachments & Thread") {
     EmailRowView(
-        thread: EmailThread(
-            id: "2",
-            subject: "Re: Q4 Planning Meeting - Updated projections attached",
-            snippet: "Sounds good, let's sync up tomorrow at 2pm. I'll send a calendar invite shortly. Can you also bring the updated projections?",
+        thread: .mock(
+            subject: "Re: Q4 Planning Meeting",
+            snippet: "Sounds good, let's sync up tomorrow at 2pm...",
             from: "Jennifer Martinez",
-            fromEmail: "j.martinez@techcorp.com",
-            timestamp: Date().addingTimeInterval(-86400),
             hasAttachments: true,
             messageCount: 4
         ),
@@ -93,15 +86,11 @@ struct EmailRowView: View {
 
 #Preview("Kept") {
     EmailRowView(
-        thread: EmailThread(
-            id: "3",
+        thread: .mock(
             subject: "Important: Action required",
-            snippet: "Please review the attached document and provide your feedback by end of day Friday.",
+            snippet: "Please review the attached document...",
             from: "HR Department",
-            fromEmail: "hr@company.com",
-            timestamp: Date(),
             hasAttachments: true,
-            messageCount: 1,
             isKept: true
         ),
         snippetLines: 2

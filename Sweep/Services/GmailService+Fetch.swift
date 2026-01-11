@@ -45,7 +45,7 @@ extension GmailService {
     }
 
     func fetchThreadDetail(_ threadId: String) async throws -> EmailThread? {
-        let url = URL(string: "\(baseURL)/threads/\(threadId)?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date")!
+        let url = URL(string: "\(baseURL)/threads/\(threadId)?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date&metadataHeaders=List-Unsubscribe")!
         let request = try await authorizedRequest(url)
 
         let response: ThreadDetailResponse = try await performRequest(request)
@@ -57,15 +57,17 @@ extension GmailService {
         return parseThread(response, firstMessage: firstMessage)
     }
 
-    func parseThread(_ response: ThreadDetailResponse, firstMessage: MessageResponse) -> EmailThread {
+    private func parseThread(_ response: ThreadDetailResponse, firstMessage: MessageResponse) -> EmailThread {
         let headers = firstMessage.payload?.headers ?? []
 
         let fromHeader = headers.first { $0.name.lowercased() == "from" }?.value ?? "Unknown"
         let subject = headers.first { $0.name.lowercased() == "subject" }?.value ?? "(No Subject)"
         let dateHeader = headers.first { $0.name.lowercased() == "date" }?.value
+        let unsubscribeHeader = headers.first { $0.name.lowercased() == "list-unsubscribe" }?.value
 
         let (fromName, fromEmail) = parseFromHeader(fromHeader)
         let timestamp = parseDateHeader(dateHeader)
+        let unsubscribeURL = parseUnsubscribeHeader(unsubscribeHeader)
 
         return EmailThread(
             id: response.id,
@@ -75,8 +77,21 @@ extension GmailService {
             fromEmail: fromEmail,
             timestamp: timestamp,
             hasAttachments: false,
-            messageCount: response.messages?.count ?? 1
+            messageCount: response.messages?.count ?? 1,
+            unsubscribeURL: unsubscribeURL
         )
+    }
+
+    private func parseUnsubscribeHeader(_ header: String?) -> URL? {
+        guard let header = header else { return nil }
+
+        let pattern = "<(https?://[^>]+)>"
+        if let match = header.range(of: pattern, options: .regularExpression) {
+            let urlString = String(header[match])
+                .trimmingCharacters(in: CharacterSet(charactersIn: "<>"))
+            return URL(string: urlString)
+        }
+        return nil
     }
 
     func parseFromHeader(_ from: String) -> (name: String, email: String) {
