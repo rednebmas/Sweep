@@ -13,13 +13,11 @@ struct EmailDetailView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    headerSection
-                    Divider()
-                    bodySection
-                }
-                .padding()
+            VStack(alignment: .leading, spacing: 0) {
+                headerSection
+                    .padding()
+                Divider()
+                bodySection
             }
             .navigationTitle("Email")
             .navigationBarTitleDisplayMode(.inline)
@@ -66,27 +64,19 @@ struct EmailDetailView: View {
         }
     }
 
+    @ViewBuilder
     private var bodySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
-            } else if let body = emailBody, !body.isEmpty {
-                Text(body)
-                    .font(.body)
-            } else {
-                Text(thread.snippet)
-                    .font(.body)
-                    .foregroundColor(.secondary)
-            }
-
-            if thread.messageCount > 1 {
-                Text("\(thread.messageCount) messages in this thread")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 8)
-            }
+        if isLoading {
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let body = emailBody, !body.isEmpty {
+            HTMLView(html: body)
+        } else {
+            Text(thread.snippet)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 

@@ -74,10 +74,12 @@ struct MessageFullResponse: Codable {
 
 struct PayloadFullResponse: Codable {
     let mimeType: String?
+    let headers: [HeaderResponse]?
     let body: BodyResponse?
     let parts: [PayloadFullResponse]?
 }
 
 struct BodyResponse: Codable {
     let data: String?
+    let attachmentId: String?
 }

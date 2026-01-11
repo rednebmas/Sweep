@@ -14,38 +14,82 @@ extension GmailService {
 
         let url = URL(string: "\(baseURL)/threads/\(threadId)?format=full")!
         let request = try await authorizedRequest(url)
-
         let response: ThreadFullResponse = try await performRequest(request)
 
         guard let messages = response.messages, let firstMessage = messages.first else {
             return ""
         }
 
-        return extractBody(from: firstMessage.payload)
-    }
+        var html = extractHTMLBody(from: firstMessage.payload)
+        let inlineAttachments = collectInlineAttachments(from: firstMessage.payload)
 
-    func extractBody(from payload: PayloadFullResponse?) -> String {
-        guard let payload = payload else { return "" }
-
-        if payload.mimeType == "text/plain", let data = payload.body?.data {
-            return decodeBase64(data)
+        for attachment in inlineAttachments {
+            let dataURL = "data:\(attachment.mimeType);base64,\(attachment.data)"
+            html = html.replacingOccurrences(of: "cid:\(attachment.contentId)", with: dataURL)
         }
 
-        if payload.mimeType == "text/html", let data = payload.body?.data {
-            return stripHTML(decodeBase64(data))
+        return html
+    }
+
+    private struct InlineAttachment {
+        let contentId: String
+        let mimeType: String
+        let data: String
+    }
+
+    private func collectInlineAttachments(from payload: PayloadFullResponse?) -> [InlineAttachment] {
+        guard let payload = payload else { return [] }
+
+        var attachments: [InlineAttachment] = []
+
+        if let contentId = extractContentId(from: payload.headers),
+           let mimeType = payload.mimeType,
+           mimeType.hasPrefix("image/"),
+           let data = payload.body?.data {
+            let standardBase64 = data
+                .replacingOccurrences(of: "-", with: "+")
+                .replacingOccurrences(of: "_", with: "/")
+            attachments.append(InlineAttachment(contentId: contentId, mimeType: mimeType, data: standardBase64))
         }
 
         if let parts = payload.parts {
-            if let textPart = parts.first(where: { $0.mimeType == "text/plain" }),
-               let data = textPart.body?.data {
-                return decodeBase64(data)
+            for part in parts {
+                attachments.append(contentsOf: collectInlineAttachments(from: part))
             }
+        }
+
+        return attachments
+    }
+
+    private func extractContentId(from headers: [HeaderResponse]?) -> String? {
+        guard let contentIdHeader = headers?.first(where: { $0.name.lowercased() == "content-id" }) else {
+            return nil
+        }
+        return contentIdHeader.value.trimmingCharacters(in: CharacterSet(charactersIn: "<>"))
+    }
+
+    private func extractHTMLBody(from payload: PayloadFullResponse?) -> String {
+        guard let payload = payload else { return "" }
+
+        if payload.mimeType == "text/html", let data = payload.body?.data {
+            return decodeBase64(data)
+        }
+
+        if payload.mimeType == "text/plain", let data = payload.body?.data {
+            return "<pre>\(decodeBase64(data))</pre>"
+        }
+
+        if let parts = payload.parts {
             if let htmlPart = parts.first(where: { $0.mimeType == "text/html" }),
                let data = htmlPart.body?.data {
-                return stripHTML(decodeBase64(data))
+                return decodeBase64(data)
+            }
+            if let textPart = parts.first(where: { $0.mimeType == "text/plain" }),
+               let data = textPart.body?.data {
+                return "<pre>\(decodeBase64(data))</pre>"
             }
             for part in parts {
-                let body = extractBody(from: part)
+                let body = extractHTMLBody(from: part)
                 if !body.isEmpty { return body }
             }
         }
@@ -53,7 +97,7 @@ extension GmailService {
         return ""
     }
 
-    func decodeBase64(_ encoded: String) -> String {
+    private func decodeBase64(_ encoded: String) -> String {
         let base64 = encoded
             .replacingOccurrences(of: "-", with: "+")
             .replacingOccurrences(of: "_", with: "/")
@@ -63,32 +107,5 @@ extension GmailService {
             return ""
         }
         return string
-    }
-
-    func stripHTML(_ html: String) -> String {
-        var text = html
-            .replacingOccurrences(of: "<br>", with: "\n", options: .caseInsensitive)
-            .replacingOccurrences(of: "<br/>", with: "\n", options: .caseInsensitive)
-            .replacingOccurrences(of: "<br />", with: "\n", options: .caseInsensitive)
-            .replacingOccurrences(of: "</p>", with: "\n\n", options: .caseInsensitive)
-            .replacingOccurrences(of: "</div>", with: "\n", options: .caseInsensitive)
-
-        while let range = text.range(of: "<[^>]+>", options: .regularExpression) {
-            text.removeSubrange(range)
-        }
-
-        text = text
-            .replacingOccurrences(of: "&nbsp;", with: " ")
-            .replacingOccurrences(of: "&amp;", with: "&")
-            .replacingOccurrences(of: "&lt;", with: "<")
-            .replacingOccurrences(of: "&gt;", with: ">")
-            .replacingOccurrences(of: "&quot;", with: "\"")
-            .replacingOccurrences(of: "&#39;", with: "'")
-
-        let lines = text.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-
-        return lines.joined(separator: "\n\n")
     }
 }

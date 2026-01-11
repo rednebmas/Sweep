@@ -20,6 +20,15 @@ struct ArchiveSession: Identifiable, Codable {
         self.wasArchived = wasArchived
     }
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
+        archivedThreadIds = try container.decode([String].self, forKey: .archivedThreadIds)
+        archivedCount = try container.decode(Int.self, forKey: .archivedCount)
+        wasArchived = try container.decodeIfPresent(Bool.self, forKey: .wasArchived) ?? true
+    }
+
     var displayDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
