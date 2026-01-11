@@ -43,7 +43,9 @@ struct ContentRouter: View {
     @ObservedObject private var authService = AuthService.shared
 
     var body: some View {
-        if authService.isAuthenticated {
+        if authService.isLoading {
+            ProgressView()
+        } else if authService.isAuthenticated {
             EmailListView()
         } else {
             SignInView()

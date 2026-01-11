@@ -28,51 +28,67 @@ extension GmailService {
         }
 
         var html = extractHTMLBody(from: firstMessage.payload)
-        let inlineAttachments = collectInlineAttachments(from: firstMessage.payload)
+        let pendingAttachments = collectPendingAttachments(from: firstMessage.payload)
 
-        for attachment in inlineAttachments {
-            let dataURL = "data:\(attachment.mimeType);base64,\(attachment.data)"
-            html = html.replacingOccurrences(of: "cid:\(attachment.contentId)", with: dataURL)
+        for attachment in pendingAttachments {
+            if let data = try? await fetchAttachmentData(
+                messageId: firstMessage.id,
+                attachmentId: attachment.attachmentId
+            ) {
+                let dataURL = "data:\(attachment.mimeType);base64,\(data)"
+                html = html.replacingOccurrences(of: "cid:\(attachment.contentId)", with: dataURL)
+            }
         }
 
         return html
     }
 
-    private struct InlineAttachment {
+    private struct PendingAttachment {
         let contentId: String
         let mimeType: String
-        let data: String
+        let attachmentId: String
     }
 
-    private func collectInlineAttachments(from payload: PayloadFullResponse?) -> [InlineAttachment] {
+    private func collectPendingAttachments(from payload: PayloadFullResponse?) -> [PendingAttachment] {
         guard let payload = payload else { return [] }
 
-        var attachments: [InlineAttachment] = []
+        var attachments: [PendingAttachment] = []
 
         if let contentId = extractContentId(from: payload.headers),
            let mimeType = payload.mimeType,
            mimeType.hasPrefix("image/"),
-           let data = payload.body?.data {
-            let standardBase64 = data
-                .replacingOccurrences(of: "-", with: "+")
-                .replacingOccurrences(of: "_", with: "/")
-            attachments.append(InlineAttachment(contentId: contentId, mimeType: mimeType, data: standardBase64))
+           let attachmentId = payload.body?.attachmentId {
+            attachments.append(PendingAttachment(
+                contentId: contentId,
+                mimeType: mimeType,
+                attachmentId: attachmentId
+            ))
         }
 
         if let parts = payload.parts {
             for part in parts {
-                attachments.append(contentsOf: collectInlineAttachments(from: part))
+                attachments.append(contentsOf: collectPendingAttachments(from: part))
             }
         }
 
         return attachments
     }
 
+    private func fetchAttachmentData(messageId: String, attachmentId: String) async throws -> String {
+        let url = URL(string: "\(baseURL)/messages/\(messageId)/attachments/\(attachmentId)")!
+        let request = try await authorizedRequest(url)
+        let response: AttachmentResponse = try await performRequest(request)
+
+        return response.data
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+    }
+
     private func extractContentId(from headers: [HeaderResponse]?) -> String? {
-        guard let contentIdHeader = headers?.first(where: { $0.name.lowercased() == "content-id" }) else {
+        guard let header = headers?.first(where: { $0.name.lowercased() == "content-id" }) else {
             return nil
         }
-        return contentIdHeader.value.trimmingCharacters(in: CharacterSet(charactersIn: "<>"))
+        return header.value.trimmingCharacters(in: CharacterSet(charactersIn: "<>"))
     }
 
     private func extractHTMLBody(from payload: PayloadFullResponse?) -> String {

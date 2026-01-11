@@ -83,3 +83,7 @@ struct BodyResponse: Codable {
     let data: String?
     let attachmentId: String?
 }
+
+struct AttachmentResponse: Codable {
+    let data: String
+}

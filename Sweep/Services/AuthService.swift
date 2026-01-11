@@ -12,6 +12,7 @@ class AuthService: ObservableObject {
     static let shared = AuthService()
 
     @Published var isAuthenticated = false
+    @Published var isLoading = true
     @Published var userEmail: String?
     @Published var error: Error?
 
@@ -33,6 +34,7 @@ class AuthService: ObservableObject {
                 } else if let error = error {
                     self?.error = error
                 }
+                self?.isLoading = false
             }
         }
     }

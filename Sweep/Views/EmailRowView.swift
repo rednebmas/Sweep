@@ -17,7 +17,7 @@ struct EmailRowView: View {
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
-        .background(thread.isKept ? Color.green.opacity(0.1) : Color.clear)
+        .background(thread.isKept ? Color.green.opacity(0.15) : Color.clear)
         .contentShape(Rectangle())
     }
 

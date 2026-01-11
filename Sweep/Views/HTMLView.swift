@@ -34,13 +34,18 @@ struct HTMLView: UIViewRepresentable {
                     line-height: 1.5;
                     margin: 0;
                     padding: 0;
-                    color: \(UIColor.label.hexString);
-                    background: transparent;
                     word-wrap: break-word;
                 }
                 img { max-width: 100%; height: auto; }
                 a { color: #007AFF; }
                 pre, code { overflow-x: auto; white-space: pre-wrap; }
+                @media (prefers-color-scheme: dark) {
+                    body {
+                        filter: invert(1) hue-rotate(180deg);
+                        background: white;
+                    }
+                    img { filter: invert(1) hue-rotate(180deg); }
+                }
             </style>
         </head>
         <body>\(content)</body>
