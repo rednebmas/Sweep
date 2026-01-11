@@ -49,11 +49,14 @@ class EmailListViewModel: ObservableObject {
         do {
             if appState.archiveOnBackground {
                 try await gmailService.archiveAndMarkRead(threadIds)
-                let session = ArchiveSession(archivedThreadIds: threadIds)
-                appState.addArchiveSession(session)
             } else {
                 try await gmailService.markReadOnly(threadIds)
             }
+            let session = ArchiveSession(
+                archivedThreadIds: threadIds,
+                wasArchived: appState.archiveOnBackground
+            )
+            appState.addArchiveSession(session)
         } catch {
             self.error = error
         }

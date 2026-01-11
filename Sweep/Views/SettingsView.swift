@@ -8,8 +8,8 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject private var appState = AppState.shared
     @ObservedObject private var gmailService = GmailService.shared
-    @State private var showingRestoreAlert = false
-    @State private var sessionToRestore: ArchiveSession?
+    @State private var selectedSession: ArchiveSession?
+    @State private var showAllSweeps = false
 
     var body: some View {
         List {
@@ -20,13 +20,10 @@ struct SettingsView: View {
             aboutSection
         }
         .navigationTitle("Settings")
-        .alert("Restore Emails", isPresented: $showingRestoreAlert, presenting: sessionToRestore) { session in
-            Button("Restore") {
-                Task { await restoreSession(session) }
+        .sheet(item: $selectedSession) { session in
+            SweepSessionDetailView(session: session) {
+                selectedSession = nil
             }
-            Button("Cancel", role: .cancel) {}
-        } message: { session in
-            Text("Restore \(session.archivedCount) emails to your inbox?")
         }
     }
 
@@ -71,32 +68,54 @@ struct SettingsView: View {
         }
     }
 
+    private var visibleSessions: [ArchiveSession] {
+        if showAllSweeps {
+            return appState.archiveSessions
+        }
+        return Array(appState.archiveSessions.prefix(3))
+    }
+
     private var undoSection: some View {
-        Section("Undo Archive") {
+        Section("Undo Sweeps") {
             if appState.archiveSessions.isEmpty {
-                Text("No recent archive sessions")
+                Text("No recent sweeps")
                     .foregroundColor(.secondary)
             } else {
-                ForEach(appState.archiveSessions) { session in
+                ForEach(visibleSessions) { session in
                     Button {
-                        sessionToRestore = session
-                        showingRestoreAlert = true
+                        selectedSession = session
                     } label: {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("\(session.archivedCount) emails archived")
-                                Text(session.displayDate)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Image(systemName: "arrow.uturn.backward")
-                                .foregroundColor(.blue)
-                        }
+                        sweepRowLabel(for: session)
                     }
                     .foregroundColor(.primary)
                 }
+                if appState.archiveSessions.count > 3 && !showAllSweeps {
+                    Button {
+                        showAllSweeps = true
+                    } label: {
+                        Text("Show More (\(appState.archiveSessions.count - 3) more)")
+                            .foregroundColor(.blue)
+                    }
+                }
             }
+        }
+    }
+
+    private func sweepRowLabel(for session: ArchiveSession) -> some View {
+        HStack {
+            VStack(alignment: .leading) {
+                Text("\(session.archivedCount) emails")
+                HStack(spacing: 4) {
+                    Text(session.displayDate)
+                    Text("•")
+                    Text(session.wasArchived ? "Archived" : "Read")
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundColor(.secondary)
         }
     }
 
@@ -111,12 +130,4 @@ struct SettingsView: View {
         }
     }
 
-    private func restoreSession(_ session: ArchiveSession) async {
-        do {
-            try await GmailService.shared.restoreThreads(session.archivedThreadIds)
-            appState.clearArchiveSession(session)
-        } catch {
-            // TODO: Show error
-        }
-    }
 }

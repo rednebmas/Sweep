@@ -67,11 +67,16 @@ struct EmailListView: View {
     }
 
     private var emptyView: some View {
-        ContentUnavailableView(
-            "No emails",
-            systemImage: "tray",
-            description: Text("You're all caught up!")
-        )
+        GeometryReader { geometry in
+            ScrollView {
+                ContentUnavailableView(
+                    "No emails",
+                    systemImage: "tray",
+                    description: Text("You're all caught up!")
+                )
+                .frame(width: geometry.size.width, height: geometry.size.height)
+            }
+        }
     }
 
     private var emailList: some View {

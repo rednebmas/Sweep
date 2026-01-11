@@ -10,12 +10,14 @@ struct ArchiveSession: Identifiable, Codable {
     let timestamp: Date
     let archivedThreadIds: [String]
     let archivedCount: Int
+    let wasArchived: Bool
 
-    init(archivedThreadIds: [String]) {
+    init(archivedThreadIds: [String], wasArchived: Bool = true) {
         self.id = UUID()
         self.timestamp = Date()
         self.archivedThreadIds = archivedThreadIds
         self.archivedCount = archivedThreadIds.count
+        self.wasArchived = wasArchived
     }
 
     var displayDate: String {

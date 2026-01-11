@@ -36,7 +36,12 @@ struct SignInView: View {
                     signIn()
                 } label: {
                     HStack {
-                        Image(systemName: "envelope.fill")
+                        if isSigningIn {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "envelope.fill")
+                        }
                         Text("Sign in with Google")
                     }
                     .frame(maxWidth: .infinity)
@@ -46,10 +51,6 @@ struct SignInView: View {
                     .cornerRadius(12)
                 }
                 .disabled(isSigningIn)
-
-                if isSigningIn {
-                    ProgressView()
-                }
 
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
