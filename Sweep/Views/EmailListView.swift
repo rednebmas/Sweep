@@ -16,11 +16,21 @@ struct EmailListView: View {
         viewModel.threads.filter { $0.isKept }
     }
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                if !keptThreads.isEmpty {
-                    keptBanner
+            ZStack {
+                if colorScheme == .dark {
+                    Color(hex: 0x030303)
+                        .ignoresSafeArea()
+                    RadialGradient(
+                        colors: [Color(hex: 0x1a1a1a), .clear],
+                        center: .topLeading,
+                        startRadius: 0,
+                        endRadius: 500
+                    )
+                    .ignoresSafeArea()
                 }
                 Group {
                     if viewModel.isLoading && viewModel.threads.isEmpty {
@@ -35,6 +45,23 @@ struct EmailListView: View {
             .navigationTitle("Sweep")
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if !keptThreads.isEmpty {
+                        Button {
+                            showingKeptSheet = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("\(keptThreads.count)")
+                                    .fontWeight(.medium)
+                            }
+                        }
+                        .sheet(isPresented: $showingKeptSheet) {
+                            KeptEmailsSheet(threads: keptThreads, onSelect: { selectedThread = $0 })
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink(destination: SettingsView()) {
                         Image(systemName: "gear")
@@ -44,6 +71,7 @@ struct EmailListView: View {
             .refreshable {
                 await viewModel.refresh()
             }
+            .background(.clear)
         }
         .sheet(item: $selectedThread) { thread in
             EmailDetailView(thread: thread)
@@ -69,33 +97,6 @@ struct EmailListView: View {
                 )
                 .frame(width: geometry.size.width, height: geometry.size.height)
             }
-        }
-    }
-
-    private var keptBanner: some View {
-        VStack(spacing: 0) {
-            Button {
-                showingKeptSheet = true
-            } label: {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("\(keptThreads.count) kept")
-                        .fontWeight(.medium)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-                .background(Color.green.opacity(0.1))
-            }
-            .buttonStyle(.plain)
-            Divider()
-        }
-        .sheet(isPresented: $showingKeptSheet) {
-            KeptEmailsSheet(threads: keptThreads, onSelect: { selectedThread = $0 })
         }
     }
 
@@ -126,7 +127,8 @@ struct EmailListView: View {
                     onPreviewTap: { selectedThread = thread }
                 )
                 .listRowInsets(EdgeInsets())
-                .listRowSeparatorTint(Color.gray.opacity(0.3))
+                .listRowBackground(Color.clear)
+                .listRowSeparatorTint(Color.gray.opacity(0.2))
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button {
                         viewModel.toggleKeep(thread)
@@ -141,5 +143,6 @@ struct EmailListView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 }
