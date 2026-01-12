@@ -10,22 +10,8 @@ struct EmailRowView: View {
     let snippetLines: Int
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            emailContent
-            Spacer(minLength: 0)
-            metadata
-        }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background(thread.isKept ? Color.green.opacity(0.15) : Color.clear)
-        .contentShape(Rectangle())
-    }
-
-    private var emailContent: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(thread.from)
-                .font(.headline)
-                .lineLimit(1)
+            headerRow
             Text(thread.cleanSubject)
                 .font(.subheadline)
                 .lineLimit(1)
@@ -36,19 +22,18 @@ struct EmailRowView: View {
                     .lineLimit(snippetLines)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(thread.isKept ? Color.green.opacity(0.15) : Color.clear)
+        .contentShape(Rectangle())
     }
 
-    private var metadata: some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            Text(thread.displayDate)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            if thread.hasAttachments {
-                Image(systemName: "paperclip")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
+    private var headerRow: some View {
+        HStack {
+            Text(thread.from)
+                .font(.headline)
+                .lineLimit(1)
+            Spacer()
             if thread.messageCount > 1 {
                 Text("\(thread.messageCount)")
                     .font(.caption2)
@@ -58,6 +43,14 @@ struct EmailRowView: View {
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
             }
+            if thread.hasAttachments {
+                Image(systemName: "paperclip")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            Text(thread.displayDate)
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
 }
