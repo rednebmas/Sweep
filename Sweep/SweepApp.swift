@@ -44,10 +44,15 @@ struct ContentRouter: View {
     @ObservedObject private var authService = AuthService.shared
 
     var body: some View {
-        if authService.isLoading || authService.isAuthenticated {
-            EmailListView()
-        } else {
-            SignInView()
+        Group {
+            if authService.isLoading || authService.isAuthenticated {
+                EmailListView()
+            } else {
+                SignInView()
+            }
+        }
+        .onAppear {
+            WebViewPool.shared.warmUp()
         }
     }
 }

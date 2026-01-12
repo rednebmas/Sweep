@@ -19,6 +19,12 @@ class WebViewPool {
         }
     }
 
+    func warmUp() {
+        for webView in available {
+            webView.loadHTMLString("<html></html>", baseURL: nil)
+        }
+    }
+
     func acquire() -> WKWebView {
         if let webView = available.popLast() {
             return webView
