@@ -27,7 +27,7 @@ class EmailListViewModel: ObservableObject {
             let fetchDate = appState.getEmailFetchDate()
             threads = try await gmailService.fetchThreads(since: fetchDate)
             gmailService.prefetchBodies(for: threads.map(\.id))
-            // DISABLED FOR TESTING: appState.recordAppOpen()
+            appState.recordAppOpen()
         } catch {
             self.error = error
         }
