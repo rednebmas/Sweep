@@ -4,10 +4,13 @@
 
 import SwiftData
 import Foundation
+import Combine
 
 @MainActor
-class KeptThreadsStore {
+class KeptThreadsStore: ObservableObject {
     static let shared = KeptThreadsStore()
+
+    @Published private(set) var count: Int = 0
 
     private var modelContainer: ModelContainer?
     private var modelContext: ModelContext?
@@ -17,6 +20,11 @@ class KeptThreadsStore {
     func configure(with container: ModelContainer) {
         self.modelContainer = container
         self.modelContext = container.mainContext
+        updateCount()
+    }
+
+    private func updateCount() {
+        count = keptThreadIds().count
     }
 
     func isKept(_ threadId: String) -> Bool {
@@ -40,6 +48,7 @@ class KeptThreadsStore {
         let keptThread = KeptThread(threadId: threadId)
         context.insert(keptThread)
         try? context.save()
+        updateCount()
     }
 
     func removeKept(_ threadId: String) {
@@ -52,6 +61,7 @@ class KeptThreadsStore {
             context.delete(thread)
         }
         try? context.save()
+        updateCount()
     }
 
     func clearAll() {
@@ -62,5 +72,6 @@ class KeptThreadsStore {
             context.delete(thread)
         }
         try? context.save()
+        updateCount()
     }
 }
