@@ -67,7 +67,7 @@ extension GmailService {
         let (fromName, fromEmail) = parseFromHeader(fromHeader)
         let timestamp = parseDateHeader(dateHeader)
         let unsubscribeURL = parseUnsubscribeHeader(unsubscribeHeader)
-        let snippet = firstMessage.snippet ?? response.snippet ?? ""
+        let snippet = decodeHTMLEntities(firstMessage.snippet ?? response.snippet ?? "")
 
         return EmailThread(
             id: response.id,
@@ -130,5 +130,18 @@ extension GmailService {
             throw GmailError.invalidResponse
         }
         return thread
+    }
+
+    private func decodeHTMLEntities(_ string: String) -> String {
+        var result = string
+        let entities = [
+            ("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"),
+            ("&quot;", "\""), ("&apos;", "'"), ("&#39;", "'"),
+            ("&#x27;", "'"), ("&nbsp;", " ")
+        ]
+        for (entity, char) in entities {
+            result = result.replacingOccurrences(of: entity, with: char)
+        }
+        return result
     }
 }

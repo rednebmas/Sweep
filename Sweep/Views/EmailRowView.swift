@@ -12,13 +12,12 @@ struct EmailRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             emailContent
-            Spacer()
+            Spacer(minLength: 0)
             metadata
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
         .background(thread.isKept ? Color.green.opacity(0.15) : Color.clear)
-        .clipped()
         .contentShape(Rectangle())
     }
 

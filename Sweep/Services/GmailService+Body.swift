@@ -32,8 +32,30 @@ extension GmailService {
             print("[Body] Cache HIT for \(threadId)")
             return cached
         }
+
+        if let inFlight = getInFlightRequest(threadId) {
+            print("[Body] Waiting for in-flight request for \(threadId)")
+            return try await inFlight.value
+        }
+
         print("[Body] Cache MISS for \(threadId) - fetching from network")
 
+        let task = Task<String, Error> {
+            try await fetchEmailBodyFromNetwork(threadId)
+        }
+        setInFlightRequest(threadId, task: task)
+
+        do {
+            let result = try await task.value
+            setInFlightRequest(threadId, task: nil)
+            return result
+        } catch {
+            setInFlightRequest(threadId, task: nil)
+            throw error
+        }
+    }
+
+    private func fetchEmailBodyFromNetwork(_ threadId: String) async throws -> String {
         guard isAuthenticated else {
             throw GmailError.notAuthenticated
         }

@@ -39,6 +39,13 @@ class AuthService: ObservableObject {
         }
     }
 
+    func waitForReady() async {
+        guard isLoading else { return }
+        for await loading in $isLoading.values where !loading {
+            return
+        }
+    }
+
     func signIn() async throws {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first,

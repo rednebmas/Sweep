@@ -33,6 +33,7 @@ class GmailService: ObservableObject {
     let baseURL = "https://gmail.googleapis.com/gmail/v1/users/me"
     private let authService = AuthService.shared
     private var bodyCache: [String: String] = [:]
+    private var inFlightBodyRequests: [String: Task<String, Error>] = [:]
 
     var isAuthenticated: Bool { authService.isAuthenticated && authService.accessToken != nil }
     var userEmail: String? { authService.userEmail }
@@ -45,6 +46,14 @@ class GmailService: ObservableObject {
 
     func cacheBody(_ threadId: String, body: String) {
         bodyCache[threadId] = body
+    }
+
+    func getInFlightRequest(_ threadId: String) -> Task<String, Error>? {
+        inFlightBodyRequests[threadId]
+    }
+
+    func setInFlightRequest(_ threadId: String, task: Task<String, Error>?) {
+        inFlightBodyRequests[threadId] = task
     }
 
     func clearCache() {

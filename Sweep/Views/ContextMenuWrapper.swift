@@ -80,6 +80,7 @@ class ContextMenuContainerView<Content: View>: UIView {
         let host = UIHostingController(rootView: content)
         host.view.backgroundColor = .clear
         host.view.translatesAutoresizingMaskIntoConstraints = false
+        host.view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         addSubview(host.view)
 
         NSLayoutConstraint.activate([
@@ -98,10 +99,19 @@ class ContextMenuContainerView<Content: View>: UIView {
     }
 
     override var intrinsicContentSize: CGSize {
-        hostingController?.view.intrinsicContentSize ?? .zero
+        guard let hostingView = hostingController?.view else { return .zero }
+        let width = bounds.width > 0 ? bounds.width : UIScreen.main.bounds.width
+        let size = hostingView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
+        return CGSize(width: UIView.noIntrinsicMetric, height: size.height)
     }
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        hostingController?.view.sizeThatFits(size) ?? .zero
+        guard let hostingView = hostingController?.view else { return .zero }
+        return hostingView.sizeThatFits(size)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        invalidateIntrinsicContentSize()
     }
 }

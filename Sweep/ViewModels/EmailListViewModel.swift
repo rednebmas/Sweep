@@ -19,6 +19,10 @@ class EmailListViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
+        await AuthService.shared.waitForReady()
+
+        guard gmailService.isAuthenticated else { return }
+
         do {
             let fetchDate = appState.getEmailFetchDate()
             threads = try await gmailService.fetchThreads(since: fetchDate)

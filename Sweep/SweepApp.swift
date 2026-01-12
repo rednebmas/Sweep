@@ -44,12 +44,20 @@ struct ContentRouter: View {
     @ObservedObject private var authService = AuthService.shared
 
     var body: some View {
-        if authService.isLoading {
-            ProgressView()
-        } else if authService.isAuthenticated {
+        if authService.isLoading || authService.isAuthenticated {
             EmailListView()
         } else {
             SignInView()
         }
+    }
+}
+
+extension Color {
+    init(hex: Int) {
+        self.init(
+            red: Double((hex >> 16) & 0xFF) / 255,
+            green: Double((hex >> 8) & 0xFF) / 255,
+            blue: Double(hex & 0xFF) / 255
+        )
     }
 }
