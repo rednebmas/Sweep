@@ -103,7 +103,11 @@ extension GmailService {
 
     // MARK: - Restore (Undo)
 
-    func restoreThreads(_ threadIds: [String]) async throws {
-        try await batchModifyThreads(threadIds, addLabels: ["INBOX"], removeLabels: [])
+    func restoreThreads(_ threadIds: [String], wasArchived: Bool) async throws {
+        if wasArchived {
+            try await batchModifyThreads(threadIds, addLabels: ["INBOX", "UNREAD"], removeLabels: [])
+        } else {
+            try await batchModifyThreads(threadIds, addLabels: ["UNREAD"], removeLabels: [])
+        }
     }
 }

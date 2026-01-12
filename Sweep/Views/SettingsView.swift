@@ -13,6 +13,13 @@ struct SettingsView: View {
 
     var body: some View {
         List {
+            Section {
+                Text("The fastest way to read your email")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+            }
             accountSection
             displaySection
             behaviorSection
@@ -104,7 +111,7 @@ struct SettingsView: View {
     private func sweepRowLabel(for session: ArchiveSession) -> some View {
         HStack {
             VStack(alignment: .leading) {
-                Text("\(session.archivedCount) emails")
+                Text("\(session.count) emails")
                 HStack(spacing: 4) {
                     Text(session.displayDate)
                     Text("•")

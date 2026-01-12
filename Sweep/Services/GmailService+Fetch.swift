@@ -78,7 +78,8 @@ extension GmailService {
             timestamp: timestamp,
             hasAttachments: false,
             messageCount: response.messages?.count ?? 1,
-            unsubscribeURL: unsubscribeURL
+            unsubscribeURL: unsubscribeURL,
+            isKept: KeptThreadsStore.shared.isKept(response.id)
         )
     }
 

@@ -12,8 +12,8 @@ struct EmailListView: View {
     @State private var selectedThread: EmailThread?
     @State private var showingKeptSheet = false
 
-    private var keptThreads: [EmailThread] {
-        viewModel.threads.filter { $0.isKept }
+    private var keptCount: Int {
+        KeptThreadsStore.shared.keptThreadIds().count
     }
 
     @Environment(\.colorScheme) private var colorScheme
@@ -46,19 +46,19 @@ struct EmailListView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if !keptThreads.isEmpty {
+                    if keptCount > 0 {
                         Button {
                             showingKeptSheet = true
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)
-                                Text("\(keptThreads.count)")
+                                Text("\(keptCount)")
                                     .fontWeight(.medium)
                             }
                         }
                         .sheet(isPresented: $showingKeptSheet) {
-                            KeptEmailsSheet(threads: keptThreads, onSelect: { selectedThread = $0 })
+                            KeptEmailsSheet(onSelect: { selectedThread = $0 })
                         }
                     }
                 }

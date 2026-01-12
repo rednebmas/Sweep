@@ -14,6 +14,7 @@ class EmailListViewModel: ObservableObject {
 
     private let gmailService = GmailService.shared
     private let appState = AppState.shared
+    private let keptStore = KeptThreadsStore.shared
 
     func loadThreads() async {
         isLoading = true
@@ -37,17 +38,33 @@ class EmailListViewModel: ObservableObject {
         await loadThreads()
     }
 
+    func reloadAfterUndo(session: SweepSession) async {
+        appState.lastOpenedTimestamp = session.timestamp
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            threads = try await gmailService.fetchThreads(since: session.timestamp)
+            gmailService.prefetchBodies(for: threads.map(\.id))
+        } catch {
+            self.error = error
+        }
+    }
+
     func toggleKeep(_ thread: EmailThread) {
         guard let index = threads.firstIndex(where: { $0.id == thread.id }) else { return }
         threads[index].isKept.toggle()
+
+        if threads[index].isKept {
+            keptStore.addKept(thread.id)
+        } else {
+            keptStore.removeKept(thread.id)
+        }
     }
 
     func processNonKeptThreads() async {
         let toProcess = threads.filter { !$0.isKept }
-        guard !toProcess.isEmpty else {
-            threads.removeAll()
-            return
-        }
+        guard !toProcess.isEmpty else { return }
 
         let threadIds = toProcess.map(\.id)
 
@@ -57,8 +74,8 @@ class EmailListViewModel: ObservableObject {
             } else {
                 try await gmailService.markReadOnly(threadIds)
             }
-            let session = ArchiveSession(
-                archivedThreadIds: threadIds,
+            let session = SweepSession(
+                threadIds: threadIds,
                 wasArchived: appState.archiveOnBackground
             )
             appState.addArchiveSession(session)
@@ -66,7 +83,7 @@ class EmailListViewModel: ObservableObject {
             self.error = error
         }
 
-        threads.removeAll()
+        threads.removeAll { !$0.isKept }
     }
 
     func blockSender(_ thread: EmailThread) async {

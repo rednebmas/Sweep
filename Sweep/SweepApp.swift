@@ -6,19 +6,30 @@
 //
 
 import SwiftUI
+import SwiftData
 import GoogleSignIn
 
 @main
 struct SweepApp: App {
+    let modelContainer: ModelContainer
     @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel = EmailListViewModel()
 
     init() {
-        // Configure Google Sign-In
+        let schema = Schema([KeptThread.self])
+        let modelConfig = ModelConfiguration(schema: schema)
+        do {
+            modelContainer = try ModelContainer(for: schema, configurations: modelConfig)
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+
+        KeptThreadsStore.shared.configure(with: modelContainer)
+
         let clientID = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String
             ?? "270582623086-t6c86nnemdho0qgvfaaau5vb287ur535.apps.googleusercontent.com"
-        let config = GIDConfiguration(clientID: clientID)
-        GIDSignIn.sharedInstance.configuration = config
+        let gidConfig = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = gidConfig
     }
 
     var body: some Scene {
@@ -29,6 +40,7 @@ struct SweepApp: App {
                     GIDSignIn.sharedInstance.handle(url)
                 }
         }
+        .modelContainer(modelContainer)
         .onChange(of: scenePhase) {
             if scenePhase == .background {
                 Task {

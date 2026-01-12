@@ -10,6 +10,7 @@ struct SweepSessionDetailView: View {
     let onRestore: () -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var viewModel: EmailListViewModel
     @ObservedObject private var appState = AppState.shared
     @State private var threads: [EmailThread] = []
     @State private var isLoading = true
@@ -38,7 +39,11 @@ struct SweepSessionDetailView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This will move \(session.archivedCount) emails back to your inbox.")
+                if session.wasArchived {
+                    Text("This will move \(session.count) emails back to your inbox.")
+                } else {
+                    Text("This will mark \(session.count) emails as unread.")
+                }
             }
             .task {
                 await loadThreads()
@@ -87,7 +92,7 @@ struct SweepSessionDetailView: View {
     private func loadThreads() async {
         var loadedThreads: [EmailThread] = []
 
-        for threadId in session.archivedThreadIds {
+        for threadId in session.threadIds {
             if let thread = try? await GmailService.shared.fetchThreadDetail(threadId) {
                 loadedThreads.append(thread)
             }
@@ -99,8 +104,9 @@ struct SweepSessionDetailView: View {
 
     private func restoreSession() async {
         do {
-            try await GmailService.shared.restoreThreads(session.archivedThreadIds)
+            try await GmailService.shared.restoreThreads(session.threadIds, wasArchived: session.wasArchived)
             appState.clearArchiveSession(session)
+            await viewModel.reloadAfterUndo(session: session)
             onRestore()
             dismiss()
         } catch {

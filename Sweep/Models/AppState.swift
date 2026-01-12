@@ -43,7 +43,7 @@ class AppState: ObservableObject {
         self.isFirstLaunch = savedTimestamp == nil
         self.archiveSessions = Self.loadArchiveSessions()
         self.snippetLines = UserDefaults.standard.object(forKey: "snippetLines") as? Int ?? 3
-        self.archiveOnBackground = UserDefaults.standard.bool(forKey: "archiveOnBackground") // defaults to false
+        self.archiveOnBackground = UserDefaults.standard.bool(forKey: "archiveOnBackground")
     }
 
     func recordAppOpen() {
