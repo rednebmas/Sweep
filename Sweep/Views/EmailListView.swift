@@ -55,7 +55,7 @@ struct EmailListView: View {
                             }
                         }
                         .sheet(isPresented: $showingKeptSheet) {
-                            KeptEmailsSheet(onSelect: { selectedThread = $0 })
+                            KeptEmailsSheet()
                         }
                     }
                 }

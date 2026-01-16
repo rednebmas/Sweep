@@ -13,13 +13,6 @@ struct SettingsView: View {
 
     var body: some View {
         List {
-            Section {
-                Text("The fastest way to read your email")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
-            }
             accountSection
             displaySection
             behaviorSection
@@ -127,13 +120,13 @@ struct SettingsView: View {
     }
 
     private var aboutSection: some View {
-        Section("About") {
-            HStack {
-                Text("Version")
-                Spacer()
-                Text("1.0.0")
-                    .foregroundColor(.secondary)
-            }
+        Section {
+            Text("The fastest way to read your email")
+                .font(.subheadline)
+                .italic()
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
         }
     }
 

@@ -42,16 +42,21 @@ class EmailListViewModel: ObservableObject {
     }
 
     func reloadAfterUndo(session: SweepSession) async {
-        appState.lastOpenedTimestamp = session.timestamp
         isLoading = true
         defer { isLoading = false }
 
-        do {
-            threads = try await gmailService.fetchThreads(since: session.timestamp)
-            gmailService.prefetchBodies(for: threads.map(\.id))
-        } catch {
-            self.error = error
+        let existingIds = Set(threads.map(\.id))
+        var restoredThreads: [EmailThread] = []
+
+        for threadId in session.threadIds where !existingIds.contains(threadId) {
+            if let thread = try? await gmailService.fetchThreadDetail(threadId) {
+                restoredThreads.append(thread)
+            }
         }
+
+        threads.append(contentsOf: restoredThreads)
+        threads.sort { $0.timestamp > $1.timestamp }
+        gmailService.prefetchBodies(for: restoredThreads.map(\.id))
     }
 
     func toggleKeep(_ thread: EmailThread) {

@@ -5,7 +5,6 @@
 import SwiftUI
 
 struct KeptEmailsSheet: View {
-    let onSelect: (EmailThread) -> Void
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var viewModel: EmailListViewModel
     @ObservedObject private var appState = AppState.shared
