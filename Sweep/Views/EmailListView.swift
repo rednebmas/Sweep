@@ -73,6 +73,13 @@ struct EmailListView: View {
         .sheet(item: $selectedThread) { thread in
             EmailDetailView(thread: thread)
         }
+        .onChange(of: selectedThread) { _, newValue in
+            viewModel.isDetailSheetOpen = newValue != nil
+        }
+        .toast(
+            isPresented: $viewModel.showSkippedProcessingToast,
+            message: "Emails weren't processed while viewing details"
+        )
         .onAppear {
             if viewModel.threads.isEmpty {
                 Task { await viewModel.loadThreads() }

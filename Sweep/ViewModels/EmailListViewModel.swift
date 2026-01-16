@@ -11,6 +11,9 @@ class EmailListViewModel: ObservableObject {
     @Published var threads: [EmailThread] = []
     @Published var isLoading = false
     @Published var error: Error?
+    @Published var showSkippedProcessingToast = false
+
+    var isDetailSheetOpen = false
 
     private let gmailService = GmailService.shared
     private let appState = AppState.shared
@@ -63,6 +66,11 @@ class EmailListViewModel: ObservableObject {
     }
 
     func processNonKeptThreads() async {
+        if isDetailSheetOpen {
+            showSkippedProcessingToast = true
+            return
+        }
+
         let toProcess = threads.filter { !$0.isKept }
         guard !toProcess.isEmpty else { return }
 
