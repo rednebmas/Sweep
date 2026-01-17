@@ -4,11 +4,13 @@
 //
 
 import UserNotifications
+import UIKit
 
 class NotificationService {
     static let shared = NotificationService()
 
     private let notificationId = "sweep-morning-reminder"
+    private(set) var deviceToken: String?
 
     private init() {}
 
@@ -18,11 +20,39 @@ class NotificationService {
                 .requestAuthorization(options: [.alert, .sound, .badge])
             if granted {
                 await scheduleMorningNotification()
+                await registerForPushNotifications()
             }
             return granted
         } catch {
             return false
         }
+    }
+
+    @MainActor
+    func registerForPushNotifications() async {
+        UIApplication.shared.registerForRemoteNotifications()
+    }
+
+    func setDeviceToken(_ tokenData: Data) {
+        let token = tokenData.map { String(format: "%02.2hhx", $0) }.joined()
+        deviceToken = token
+    }
+
+    func registerWithServer() async {
+        guard let token = deviceToken else { return }
+        guard let email = AuthService.shared.userEmail else { return }
+        guard let refreshToken = AuthService.shared.refreshToken else { return }
+
+        await PushAPIClient.shared.registerDevice(
+            email: email,
+            deviceToken: token,
+            refreshToken: refreshToken
+        )
+    }
+
+    func notifyAppOpened() async {
+        guard let email = AuthService.shared.userEmail else { return }
+        await PushAPIClient.shared.appOpened(email: email)
     }
 
     func scheduleMorningNotification() async {

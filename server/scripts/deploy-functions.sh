@@ -6,6 +6,12 @@ REGION="${SWEEP_REGION:-us-central1}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 FUNCTIONS_DIR="$SCRIPT_DIR/../functions"
 
+echo "Building TypeScript..."
+cd "$FUNCTIONS_DIR"
+npm install
+npm run build
+cd - > /dev/null
+
 gcloud config set project "$PROJECT_ID"
 
 echo "Deploying Cloud Functions from $FUNCTIONS_DIR..."
@@ -18,7 +24,7 @@ gcloud functions deploy onGmailNotification \
   --source="$FUNCTIONS_DIR" \
   --trigger-topic=gmail-notifications \
   --entry-point=onGmailNotification \
-  --set-secrets="APNS_KEY=apns-key:latest,SWEEP_API_KEY=sweep-api-key:latest"
+  --set-secrets="APNS_KEY=apns-key:latest,APNS_TEAM_ID=apns-team-id:latest,APNS_KEY_ID=apns-key-id:latest,SWEEP_API_KEY=sweep-api-key:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest"
 
 echo "Deploying registerDevice (HTTP)..."
 gcloud functions deploy registerDevice \

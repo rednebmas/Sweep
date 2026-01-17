@@ -1,0 +1,21 @@
+{
+  "name": "sweep-push-functions",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "deploy": "npm run build && cd .. && ./scripts/deploy-functions.sh"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.0.0",
+    "@google-cloud/functions-framework": "^3.0.0",
+    "googleapis": "^130.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

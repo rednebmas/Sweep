@@ -9,3 +9,4 @@ xcuserdata/
 Pods/
 .build/
 node_modules/
+dist/

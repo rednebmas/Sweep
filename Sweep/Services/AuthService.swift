@@ -22,6 +22,10 @@ class AuthService: ObservableObject {
         currentUser?.accessToken.tokenString
     }
 
+    var refreshToken: String? {
+        currentUser?.refreshToken.tokenString
+    }
+
     private init() {
         restorePreviousSignIn()
     }

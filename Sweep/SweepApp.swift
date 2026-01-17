@@ -11,6 +11,7 @@ import GoogleSignIn
 
 @main
 struct SweepApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     let modelContainer: ModelContainer
     @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel = EmailListViewModel()
@@ -45,6 +46,10 @@ struct SweepApp: App {
             if scenePhase == .background {
                 Task {
                     await viewModel.processNonKeptThreads()
+                }
+            } else if scenePhase == .active {
+                Task {
+                    await NotificationService.shared.notifyAppOpened()
                 }
             }
         }
