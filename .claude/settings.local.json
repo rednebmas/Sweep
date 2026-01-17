@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
-      "Bash(magick:*)"
+      "Bash(magick:*)",
+      "Bash(npx jscpd:*)"
     ]
   }
 }
