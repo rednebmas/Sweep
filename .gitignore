@@ -1,0 +1,11 @@
+build/
+*.ipa
+*.dSYM.zip
+DerivedData/
+.DS_Store
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+Pods/
+.build/
+node_modules/

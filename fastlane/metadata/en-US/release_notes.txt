@@ -1,0 +1,8 @@
+Initial release of Sweep.
+
+- Swipe right to keep emails
+- Auto-archive when closing the app
+- Block senders and unsubscribe with long-press
+- View full email threads
+- Undo recent archive sessions
+- Daily morning reminder

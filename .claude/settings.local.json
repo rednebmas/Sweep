@@ -3,7 +3,20 @@
     "allow": [
       "Bash(find:*)",
       "Bash(magick:*)",
-      "Bash(npx jscpd:*)"
+      "Bash(npx jscpd:*)",
+      "Bash(tree:*)",
+      "Bash(xcrun simctl list:*)",
+      "Bash(xcrun simctl boot:*)",
+      "Bash(xcrun simctl install:*)",
+      "Bash(xcrun simctl io:*)",
+      "Bash(sips:*)",
+      "Bash(xcrun simctl shutdown:*)",
+      "Bash(fastlane beta:*)",
+      "Bash(fastlane release:*)"
     ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
   }
 }

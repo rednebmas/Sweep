@@ -1,0 +1,23 @@
+Sweep inverts the typical inbox workflow. Instead of archiving emails you don't want, you mark emails you want to Keep - everything else is automatically archived when you close the app.
+
+HOW IT WORKS:
+
+1. Open the app to see emails since your last session
+2. Swipe right on emails worth keeping
+3. Close the app - everything else is archived
+4. Repeat daily
+
+The default is gone. This forces intentional decisions about what actually deserves your attention.
+
+KEY FEATURES:
+
+- One swipe to keep: Swipe right on any email to mark it as important
+- Auto-archive: Non-kept emails are archived when you leave the app
+- Undo support: Accidentally archived something? Restore entire sessions from Settings
+- Block senders: Long-press to block, mark as spam, or unsubscribe
+- Morning reminder: Daily notification to sweep your inbox
+- Full email view: Tap any email to read the complete thread
+
+Designed for inbox zero without the effort. Stop spending time deciding what to archive. Just keep what matters.
+
+Requires a Gmail account.

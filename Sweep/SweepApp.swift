@@ -56,7 +56,7 @@ struct ContentRouter: View {
 
     var body: some View {
         Group {
-            if authService.isLoading || authService.isAuthenticated {
+            if MockDataProvider.isEnabled || authService.isLoading || authService.isAuthenticated {
                 EmailListView()
             } else {
                 SignInView()

@@ -23,6 +23,11 @@ class EmailListViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
+        if MockDataProvider.isEnabled {
+            threads = MockDataProvider.mockThreads()
+            return
+        }
+
         await AuthService.shared.waitForReady()
 
         guard gmailService.isAuthenticated else { return }
