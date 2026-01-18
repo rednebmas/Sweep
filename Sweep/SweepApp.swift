@@ -29,7 +29,9 @@ struct SweepApp: App {
 
         let clientID = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String
             ?? "270582623086-t6c86nnemdho0qgvfaaau5vb287ur535.apps.googleusercontent.com"
-        let gidConfig = GIDConfiguration(clientID: clientID)
+        let serverClientID = Bundle.main.object(forInfoDictionaryKey: "GIDServerClientID") as? String
+            ?? "270582623086-qru4e2psm743knee9uth9ohlpdbd804t.apps.googleusercontent.com"
+        let gidConfig = GIDConfiguration(clientID: clientID, serverClientID: serverClientID)
         GIDSignIn.sharedInstance.configuration = gidConfig
     }
 

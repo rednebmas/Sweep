@@ -12,7 +12,15 @@
       "Bash(sips:*)",
       "Bash(xcrun simctl shutdown:*)",
       "Bash(fastlane beta:*)",
-      "Bash(fastlane release:*)"
+      "Bash(fastlane release:*)",
+      "Bash(gcloud projects list:*)",
+      "Bash(gcloud services enable:*)",
+      "Bash(gcloud secrets create google-client-secret --data-file=- --project=sweep-483918)",
+      "Bash(SERVICE_ACCOUNT=\"sweep-483918@appspot.gserviceaccount.com\")",
+      "Bash(for secret in google-client-id google-client-secret sweep-api-key)",
+      "Bash(do)",
+      "Bash(gcloud secrets add-iam-policy-binding:*)",
+      "Bash(done)"
     ]
   },
   "sandbox": {

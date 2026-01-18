@@ -17,13 +17,10 @@ class AuthService: ObservableObject {
     @Published var error: Error?
 
     private var currentUser: GIDGoogleUser?
+    private(set) var serverAuthCode: String?
 
     var accessToken: String? {
         currentUser?.accessToken.tokenString
-    }
-
-    var refreshToken: String? {
-        currentUser?.refreshToken.tokenString
     }
 
     private init() {
@@ -80,6 +77,7 @@ class AuthService: ObservableObject {
                         return
                     }
 
+                    self?.serverAuthCode = result?.serverAuthCode
                     self?.handleSignInSuccess(user)
                     continuation.resume()
                 }
@@ -118,6 +116,9 @@ class AuthService: ObservableObject {
         currentUser = user
         isAuthenticated = true
         userEmail = user.profile?.email
+        Task {
+            _ = await NotificationService.shared.requestPermission()
+        }
     }
 }
 

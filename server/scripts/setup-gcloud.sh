@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PROJECT_ID="${SWEEP_PROJECT_ID:-sweep-push}"
+PROJECT_ID="${SWEEP_PROJECT_ID:-sweep-483918}"
 REGION="${SWEEP_REGION:-us-central1}"
 
 echo "Setting up GCloud project: $PROJECT_ID"

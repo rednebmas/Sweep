@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PROJECT_ID="${SWEEP_PROJECT_ID:-sweep-push}"
+PROJECT_ID="${SWEEP_PROJECT_ID:-sweep-483918}"
 CLIENT_ID="${1:-}"
 CLIENT_SECRET="${2:-}"
 

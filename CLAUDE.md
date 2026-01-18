@@ -38,6 +38,23 @@ find . -name "*.swift" ! -path "*/.*" -exec awk 'END{if(NR>150)print NR" "FILENA
 - **No comments:** Code is self-documenting.
 - **Type safety:** No force unwraps, no Any.
 
+## Push Notifications (Production Checklist)
+
+Before releasing to production, update these settings:
+
+1. **APNs Environment** - In `deploy-functions.sh`, remove or set `APNS_SANDBOX=false`:
+   ```bash
+   --set-env-vars="APNS_SANDBOX=false"  # or remove the line entirely
+   ```
+
+2. **iOS Entitlements** - In `Sweep/Sweep.entitlements`, change:
+   ```xml
+   <key>aps-environment</key>
+   <string>production</string>  <!-- change from "development" -->
+   ```
+
+3. **Redeploy** - Run `./server/scripts/deploy-functions.sh` after changes
+
 ## Session Protocol
 
 1. Check git status and recent commits

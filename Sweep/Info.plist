@@ -15,5 +15,13 @@
 	</array>
 	<key>GIDClientID</key>
 	<string>270582623086-t6c86nnemdho0qgvfaaau5vb287ur535.apps.googleusercontent.com</string>
+	<key>PUSH_API_BASE_URL</key>
+	<string>https://us-central1-sweep-483918.cloudfunctions.net</string>
+	<key>PUSH_API_KEY</key>
+	<string>LPhXSH31rMEKa6O2fNTWEArHVqbapUoJLyAlE9qfzyY=</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

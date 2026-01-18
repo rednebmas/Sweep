@@ -1,7 +1,9 @@
 import * as http2 from 'http2';
 import * as crypto from 'crypto';
 
-const APNS_HOST = 'api.push.apple.com';
+const APNS_HOST = process.env.APNS_SANDBOX === 'true'
+  ? 'api.sandbox.push.apple.com'
+  : 'api.push.apple.com';
 const TEAM_ID = process.env.APNS_TEAM_ID!;
 const KEY_ID = process.env.APNS_KEY_ID!;
 const BUNDLE_ID = 'com.sambender.Sweep';

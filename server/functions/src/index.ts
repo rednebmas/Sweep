@@ -1,6 +1,6 @@
 import * as functions from '@google-cloud/functions-framework';
 import { getUser, setUser, addPendingEmail, clearPendingEmails } from './firestore';
-import { setupWatch, getEmailMetadata, getNewMessages } from './gmail';
+import { setupWatch, getEmailMetadata, getNewMessages, exchangeAuthCode } from './gmail';
 import { sendNotification } from './apns';
 import { formatNotification } from './notifications';
 
@@ -66,7 +66,7 @@ functions.cloudEvent('onGmailNotification', async (event: functions.CloudEvent<{
 interface RegisterDeviceBody {
   email: string;
   deviceToken: string;
-  refreshToken: string;
+  authCode: string;
 }
 
 functions.http('registerDevice', async (req: functions.Request, res: functions.Response) => {
@@ -80,13 +80,14 @@ functions.http('registerDevice', async (req: functions.Request, res: functions.R
     return;
   }
 
-  const { email, deviceToken, refreshToken } = req.body as RegisterDeviceBody;
+  const { email, deviceToken, authCode } = req.body as RegisterDeviceBody;
 
-  if (!email || !deviceToken || !refreshToken) {
+  if (!email || !deviceToken || !authCode) {
     res.status(400).send('Missing required fields');
     return;
   }
 
+  const refreshToken = await exchangeAuthCode(authCode);
   const watchResult = await setupWatch(refreshToken);
 
   await setUser(email, {

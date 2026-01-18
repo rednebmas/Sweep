@@ -1,4 +1,4 @@
-import { Firestore } from '@google-cloud/firestore';
+import { Firestore, Timestamp } from '@google-cloud/firestore';
 
 const db = new Firestore();
 const usersCollection = db.collection('users');
@@ -17,9 +17,22 @@ export interface UserData {
   pendingEmails: EmailData[];
 }
 
+function toDate(value: Date | Timestamp): Date {
+  return value instanceof Timestamp ? value.toDate() : value;
+}
+
 export async function getUser(email: string): Promise<UserData | null> {
   const doc = await usersCollection.doc(email).get();
-  return doc.exists ? (doc.data() as UserData) : null;
+  if (!doc.exists) return null;
+  const data = doc.data()!;
+  return {
+    ...data,
+    watchExpiry: toDate(data.watchExpiry),
+    pendingEmails: (data.pendingEmails || []).map((e: EmailData & { timestamp: Date | Timestamp }) => ({
+      ...e,
+      timestamp: toDate(e.timestamp)
+    }))
+  } as UserData;
 }
 
 export async function setUser(email: string, data: Partial<UserData>): Promise<void> {

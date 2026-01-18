@@ -1,15 +1,26 @@
 import { google } from 'googleapis';
 
-const PROJECT_ID = process.env.SWEEP_PROJECT_ID || 'sweep-push';
+const PROJECT_ID = process.env.SWEEP_PROJECT_ID || 'sweep-483918';
 const TOPIC_NAME = `projects/${PROJECT_ID}/topics/gmail-notifications`;
 
-function createOAuthClient(refreshToken: string) {
+function createOAuthClient(refreshToken?: string) {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET
   );
-  oauth2Client.setCredentials({ refresh_token: refreshToken });
+  if (refreshToken) {
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+  }
   return oauth2Client;
+}
+
+export async function exchangeAuthCode(authCode: string): Promise<string> {
+  const oauth2Client = createOAuthClient();
+  const { tokens } = await oauth2Client.getToken(authCode);
+  if (!tokens.refresh_token) {
+    throw new Error('No refresh token received');
+  }
+  return tokens.refresh_token;
 }
 
 export interface WatchResult {

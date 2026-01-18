@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PROJECT_ID="${SWEEP_PROJECT_ID:-sweep-push}"
+PROJECT_ID="${SWEEP_PROJECT_ID:-sweep-483918}"
 APNS_KEY_FILE="${1:-}"
 APNS_TEAM_ID="${2:-}"
 APNS_KEY_ID="${3:-}"

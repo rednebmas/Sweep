@@ -41,12 +41,12 @@ class NotificationService {
     func registerWithServer() async {
         guard let token = deviceToken else { return }
         guard let email = AuthService.shared.userEmail else { return }
-        guard let refreshToken = AuthService.shared.refreshToken else { return }
+        guard let authCode = AuthService.shared.serverAuthCode else { return }
 
         await PushAPIClient.shared.registerDevice(
             email: email,
             deviceToken: token,
-            refreshToken: refreshToken
+            authCode: authCode
         )
     }
 

@@ -16,7 +16,7 @@ class PushAPIClient {
         apiKey = Bundle.main.infoDictionary?["PUSH_API_KEY"] as? String ?? ""
     }
 
-    func registerDevice(email: String, deviceToken: String, refreshToken: String) async {
+    func registerDevice(email: String, deviceToken: String, authCode: String) async {
         guard !baseURL.isEmpty, !apiKey.isEmpty else { return }
 
         let url = URL(string: "\(baseURL)/registerDevice")!
@@ -28,7 +28,7 @@ class PushAPIClient {
         let body: [String: String] = [
             "email": email,
             "deviceToken": deviceToken,
-            "refreshToken": refreshToken
+            "authCode": authCode
         ]
         request.httpBody = try? JSONEncoder().encode(body)
 
