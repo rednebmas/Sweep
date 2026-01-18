@@ -6,8 +6,16 @@ import { formatNotification } from './notifications';
 
 const API_KEY = process.env.SWEEP_API_KEY;
 
-function validateApiKey(req: functions.Request): boolean {
-  return req.headers['x-sweep-key'] === API_KEY;
+function validateRequest(req: functions.Request, res: functions.Response): boolean {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method not allowed');
+    return false;
+  }
+  if (req.headers['x-sweep-key'] !== API_KEY) {
+    res.status(401).send('Unauthorized');
+    return false;
+  }
+  return true;
 }
 
 interface PubSubMessage {
@@ -70,15 +78,7 @@ interface RegisterDeviceBody {
 }
 
 functions.http('registerDevice', async (req: functions.Request, res: functions.Response) => {
-  if (req.method !== 'POST') {
-    res.status(405).send('Method not allowed');
-    return;
-  }
-
-  if (!validateApiKey(req)) {
-    res.status(401).send('Unauthorized');
-    return;
-  }
+  if (!validateRequest(req, res)) return;
 
   const { email, deviceToken, authCode } = req.body as RegisterDeviceBody;
 
@@ -109,15 +109,7 @@ interface AppOpenedBody {
 }
 
 functions.http('appOpened', async (req: functions.Request, res: functions.Response) => {
-  if (req.method !== 'POST') {
-    res.status(405).send('Method not allowed');
-    return;
-  }
-
-  if (!validateApiKey(req)) {
-    res.status(401).send('Unauthorized');
-    return;
-  }
+  if (!validateRequest(req, res)) return;
 
   const { email } = req.body as AppOpenedBody;
 
