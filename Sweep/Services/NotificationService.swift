@@ -49,22 +49,28 @@ class NotificationService {
             case .gmail:
                 guard let gmailProvider = provider as? GmailProvider,
                       let authCode = gmailProvider.serverAuthCode else { continue }
-                await PushAPIClient.shared.registerDevice(
+                await PushAPIClient.shared.registerGmailDevice(
                     email: account.email,
                     deviceToken: token,
                     authCode: authCode
                 )
             case .outlook:
-                break
+                guard let outlookProvider = provider as? OutlookProvider,
+                      let authCode = outlookProvider.serverAuthCode else { continue }
+                await PushAPIClient.shared.registerOutlookDevice(
+                    email: account.email,
+                    deviceToken: token,
+                    authCode: authCode
+                )
             }
         }
     }
 
     @MainActor
     func notifyAppOpened() async {
-        let emails = AccountManager.shared.enabledAccounts.map(\.email)
-        for email in emails {
-            await PushAPIClient.shared.appOpened(email: email)
+        for account in AccountManager.shared.enabledAccounts {
+            let provider = account.providerType == .gmail ? "gmail" : "outlook"
+            await PushAPIClient.shared.appOpened(email: account.email, provider: provider)
         }
     }
 

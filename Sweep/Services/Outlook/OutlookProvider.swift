@@ -13,6 +13,7 @@ class OutlookProvider: EmailProviderProtocol {
     var accountId: String { auth.accountId }
     var userEmail: String? { auth.email }
     var isAuthenticated: Bool { auth.isAuthenticated }
+    var serverAuthCode: String? { auth.serverAuthCode }
 
     init() {
         self.auth = OutlookAuth()

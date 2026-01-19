@@ -34,16 +34,23 @@ class PushAPIClient {
         }
     }
 
-    func registerDevice(email: String, deviceToken: String, authCode: String) async {
-        let body = ["email": email, "deviceToken": deviceToken, "authCode": authCode]
+    func registerGmailDevice(email: String, deviceToken: String, authCode: String) async {
+        let body = ["email": email, "deviceToken": deviceToken, "authCode": authCode, "provider": "gmail"]
         if await post("registerDevice", body: body) {
-            print("Device registered for push notifications")
+            print("Gmail device registered for push notifications")
         }
     }
 
-    func appOpened(email: String) async {
-        if await post("appOpened", body: ["email": email]) {
-            print("App opened notification sent")
+    func registerOutlookDevice(email: String, deviceToken: String, authCode: String) async {
+        let body = ["email": email, "deviceToken": deviceToken, "authCode": authCode, "provider": "outlook"]
+        if await post("registerDevice", body: body) {
+            print("Outlook device registered for push notifications")
+        }
+    }
+
+    func appOpened(email: String, provider: String) async {
+        if await post("appOpened", body: ["email": email, "provider": provider]) {
+            print("App opened notification sent for \(provider)")
         }
     }
 }

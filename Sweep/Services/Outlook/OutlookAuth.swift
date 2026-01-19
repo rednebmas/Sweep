@@ -16,6 +16,7 @@ class OutlookAuth {
     private var refreshToken: String?
     private var userEmail: String?
     private var userId: String?
+    private var authorizationCode: String?
 
     #if canImport(MSAL)
     private var application: MSALPublicClientApplication?
@@ -24,7 +25,7 @@ class OutlookAuth {
 
     private let clientId: String
     private let redirectUri: String
-    private let scopes = ["Mail.Read", "Mail.ReadWrite", "User.Read"]
+    private let scopes = ["Mail.Read", "Mail.ReadWrite", "User.Read", "offline_access"]
 
     var accountId: String {
         userId ?? UUID().uuidString
@@ -33,6 +34,7 @@ class OutlookAuth {
     var email: String? { userEmail }
     var isAuthenticated: Bool { accessToken != nil }
     var token: String? { accessToken }
+    var serverAuthCode: String? { authorizationCode }
 
     init() {
         self.clientId = Bundle.main.object(forInfoDictionaryKey: "MSALClientID") as? String ?? ""
