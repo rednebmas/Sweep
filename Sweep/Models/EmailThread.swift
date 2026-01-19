@@ -7,6 +7,8 @@ import Foundation
 
 struct EmailThread: Identifiable, Codable, Hashable {
     let id: String
+    let accountId: String
+    let providerType: EmailProviderType
     let subject: String
     let snippet: String
     let from: String
@@ -35,6 +37,10 @@ struct EmailThread: Identifiable, Codable, Hashable {
 
     var senderInitial: String {
         from.first.map(String.init) ?? "?"
+    }
+
+    var compositeId: String {
+        "\(accountId):\(id)"
     }
 
     var cleanSubject: String {
