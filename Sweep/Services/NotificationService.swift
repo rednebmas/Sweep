@@ -9,7 +9,6 @@ import UIKit
 class NotificationService {
     static let shared = NotificationService()
 
-    private let notificationId = "sweep-morning-reminder"
     private(set) var deviceToken: String?
 
     private init() {}
@@ -19,7 +18,6 @@ class NotificationService {
             let granted = try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .sound, .badge])
             if granted {
-                await scheduleMorningNotification()
                 await registerForPushNotifications()
             }
             return granted
@@ -74,40 +72,4 @@ class NotificationService {
         }
     }
 
-    func scheduleMorningNotification() async {
-        let center = UNUserNotificationCenter.current()
-
-        center.removePendingNotificationRequests(withIdentifiers: [notificationId])
-
-        let content = UNMutableNotificationContent()
-        content.title = "Sweep"
-        content.body = "Time to check your inbox"
-        content.sound = .default
-
-        var dateComponents = DateComponents()
-        dateComponents.hour = 8
-        dateComponents.minute = 0
-
-        let trigger = UNCalendarNotificationTrigger(
-            dateMatching: dateComponents,
-            repeats: true
-        )
-
-        let request = UNNotificationRequest(
-            identifier: notificationId,
-            content: content,
-            trigger: trigger
-        )
-
-        do {
-            try await center.add(request)
-        } catch {
-            print("Failed to schedule notification: \(error)")
-        }
-    }
-
-    func cancelMorningNotification() {
-        UNUserNotificationCenter.current()
-            .removePendingNotificationRequests(withIdentifiers: [notificationId])
-    }
 }

@@ -12,7 +12,17 @@
 				<string>com.googleusercontent.apps.270582623086-t6c86nnemdho0qgvfaaau5vb287ur535</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Microsoft Authentication</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>msauth.com.sam.sweep</string>
+			</array>
+		</dict>
 	</array>
+	<key>MSALClientID</key>
+	<string>f3639504-389f-46b2-b7fe-47131f18430c</string>
 	<key>GIDClientID</key>
 	<string>270582623086-t6c86nnemdho0qgvfaaau5vb287ur535.apps.googleusercontent.com</string>
 	<key>PUSH_API_BASE_URL</key>

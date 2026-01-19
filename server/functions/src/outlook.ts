@@ -28,6 +28,25 @@ export interface TokenResult {
   refreshToken: string;
 }
 
+async function requestToken(params: URLSearchParams, errorPrefix: string, fallbackRefresh: string): Promise<TokenResult> {
+  const response = await fetch(TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString()
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`${errorPrefix}: ${error}`);
+  }
+
+  const data = await response.json() as TokenResponse;
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token || fallbackRefresh
+  };
+}
+
 export async function exchangeMsAuthCode(authCode: string): Promise<TokenResult> {
   const params = new URLSearchParams({
     client_id: AZURE_CLIENT_ID,
@@ -37,23 +56,7 @@ export async function exchangeMsAuthCode(authCode: string): Promise<TokenResult>
     grant_type: 'authorization_code',
     scope: 'Mail.Read Mail.ReadWrite User.Read offline_access'
   });
-
-  const response = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString()
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Token exchange failed: ${error}`);
-  }
-
-  const data = await response.json() as TokenResponse;
-  return {
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token || ''
-  };
+  return requestToken(params, 'Token exchange failed', '');
 }
 
 export async function refreshMsToken(refreshToken: string): Promise<TokenResult> {
@@ -64,23 +67,7 @@ export async function refreshMsToken(refreshToken: string): Promise<TokenResult>
     grant_type: 'refresh_token',
     scope: 'Mail.Read Mail.ReadWrite User.Read offline_access'
   });
-
-  const response = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString()
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Token refresh failed: ${error}`);
-  }
-
-  const data = await response.json() as TokenResponse;
-  return {
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token || refreshToken
-  };
+  return requestToken(params, 'Token refresh failed', refreshToken);
 }
 
 export interface SubscriptionResult {

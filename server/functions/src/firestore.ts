@@ -33,10 +33,7 @@ function toDate(value: Date | Timestamp): Date {
   return value instanceof Timestamp ? value.toDate() : value;
 }
 
-export async function getUser(email: string, provider: Provider): Promise<UserData | null> {
-  const doc = await usersCollection.doc(userKey(email, provider)).get();
-  if (!doc.exists) return null;
-  const data = doc.data()!;
+function parseUserData(data: FirebaseFirestore.DocumentData): UserData {
   return {
     ...data,
     watchExpiry: data.watchExpiry ? toDate(data.watchExpiry) : undefined,
@@ -46,25 +43,24 @@ export async function getUser(email: string, provider: Provider): Promise<UserDa
       timestamp: toDate(e.timestamp)
     }))
   } as UserData;
+}
+
+export async function getUser(email: string, provider: Provider): Promise<UserData | null> {
+  const doc = await usersCollection.doc(userKey(email, provider)).get();
+  return doc.exists ? parseUserData(doc.data()!) : null;
 }
 
 export async function getUserByKey(key: string): Promise<UserData | null> {
   const doc = await usersCollection.doc(key).get();
-  if (!doc.exists) return null;
-  const data = doc.data()!;
-  return {
-    ...data,
-    watchExpiry: data.watchExpiry ? toDate(data.watchExpiry) : undefined,
-    subscriptionExpiry: data.subscriptionExpiry ? toDate(data.subscriptionExpiry) : undefined,
-    pendingEmails: (data.pendingEmails || []).map((e: EmailData & { timestamp: Date | Timestamp }) => ({
-      ...e,
-      timestamp: toDate(e.timestamp)
-    }))
-  } as UserData;
+  return doc.exists ? parseUserData(doc.data()!) : null;
 }
 
 export async function setUser(email: string, provider: Provider, data: Partial<UserData>): Promise<void> {
   await usersCollection.doc(userKey(email, provider)).set({ ...data, provider }, { merge: true });
+}
+
+function emailKey(e: EmailData): string {
+  return `${e.sender}|${e.subject}|${e.timestamp.getTime()}`;
 }
 
 export async function addPendingEmail(email: string, provider: Provider, emailData: EmailData): Promise<EmailData[]> {
@@ -73,8 +69,11 @@ export async function addPendingEmail(email: string, provider: Provider, emailDa
 
   await db.runTransaction(async (tx) => {
     const doc = await tx.get(userRef);
-    const pending = doc.exists ? (doc.data()?.pendingEmails || []) : [];
-    pending.push(emailData);
+    const pending: EmailData[] = doc.exists ? (doc.data()?.pendingEmails || []) : [];
+    const existingKeys = new Set(pending.map(e => emailKey({ ...e, timestamp: toDate(e.timestamp as Date | Timestamp) })));
+    if (!existingKeys.has(emailKey(emailData))) {
+      pending.push(emailData);
+    }
     updatedPending = pending;
     tx.set(userRef, { pendingEmails: pending }, { merge: true });
   });

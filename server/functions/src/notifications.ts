@@ -41,6 +41,6 @@ export function formatNotification(pendingEmails: EmailData[]): NotificationCont
 
   return {
     title: 'Sweep',
-    body: `${sorted.length} new emails from ${senderParts.join(', ')}`
+    body: `${sorted.length} new emails • ${senderParts.join(' • ')}`
   };
 }
