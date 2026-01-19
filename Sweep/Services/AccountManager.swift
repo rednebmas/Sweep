@@ -40,7 +40,14 @@ class AccountManager: ObservableObject {
     }
 
     func addGmailAccount() async throws {
-        let provider = GmailProvider()
+        try await addAccount(provider: GmailProvider())
+    }
+
+    func addOutlookAccount() async throws {
+        try await addAccount(provider: OutlookProvider())
+    }
+
+    private func addAccount(provider: any EmailProviderProtocol) async throws {
         try await provider.signIn()
 
         guard let email = provider.userEmail else {
@@ -53,7 +60,7 @@ class AccountManager: ObservableObject {
 
         let account = EmailAccount(
             id: provider.accountId,
-            providerType: .gmail,
+            providerType: provider.providerType,
             email: email,
             addedAt: Date(),
             isEnabled: true
@@ -90,14 +97,11 @@ class AccountManager: ObservableObject {
     }
 
     private func restoreProvider(for account: EmailAccount) async {
-        switch account.providerType {
-        case .gmail:
-            let provider = GmailProvider()
-            if await provider.restorePreviousSignIn() {
-                providers[account.id] = provider
-            }
-        case .outlook:
-            break
+        let provider: any EmailProviderProtocol = account.providerType == .gmail
+            ? GmailProvider()
+            : OutlookProvider()
+        if await provider.restorePreviousSignIn() {
+            providers[account.id] = provider
         }
     }
 

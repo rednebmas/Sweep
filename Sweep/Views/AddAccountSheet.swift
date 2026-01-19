@@ -7,8 +7,11 @@ import SwiftUI
 struct AddAccountSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var accountManager = AccountManager.shared
-    @State private var isAddingAccount = false
+    @State private var isAddingGmail = false
+    @State private var isAddingOutlook = false
     @State private var errorMessage: String?
+
+    private var isAddingAccount: Bool { isAddingGmail || isAddingOutlook }
 
     var body: some View {
         NavigationStack {
@@ -17,46 +20,22 @@ struct AddAccountSheet: View {
                     Button {
                         addGmailAccount()
                     } label: {
-                        HStack {
-                            Circle()
-                                .fill(EmailProviderType.gmail.brandColor)
-                                .frame(width: 32, height: 32)
-                                .overlay {
-                                    Image(systemName: "envelope.fill")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 14))
-                                }
-                            Text("Gmail")
-                                .foregroundColor(.primary)
-                            Spacer()
-                            if isAddingAccount {
-                                ProgressView()
-                            }
-                        }
+                        providerRow(
+                            type: .gmail,
+                            isLoading: isAddingGmail
+                        )
                     }
                     .disabled(isAddingAccount)
 
                     Button {
-                        // Outlook - Phase 6
+                        addOutlookAccount()
                     } label: {
-                        HStack {
-                            Circle()
-                                .fill(EmailProviderType.outlook.brandColor)
-                                .frame(width: 32, height: 32)
-                                .overlay {
-                                    Image(systemName: "envelope.fill")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 14))
-                                }
-                            Text("Outlook")
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Text("Coming Soon")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        providerRow(
+                            type: .outlook,
+                            isLoading: isAddingOutlook
+                        )
                     }
-                    .disabled(true)
+                    .disabled(isAddingAccount)
                 }
 
                 if let error = errorMessage {
@@ -77,8 +56,27 @@ struct AddAccountSheet: View {
         }
     }
 
+    private func providerRow(type: EmailProviderType, isLoading: Bool) -> some View {
+        HStack {
+            Circle()
+                .fill(type.brandColor)
+                .frame(width: 32, height: 32)
+                .overlay {
+                    Image(systemName: "envelope.fill")
+                        .foregroundColor(.white)
+                        .font(.system(size: 14))
+                }
+            Text(type.displayName)
+                .foregroundColor(.primary)
+            Spacer()
+            if isLoading {
+                ProgressView()
+            }
+        }
+    }
+
     private func addGmailAccount() {
-        isAddingAccount = true
+        isAddingGmail = true
         errorMessage = nil
 
         Task {
@@ -88,7 +86,22 @@ struct AddAccountSheet: View {
             } catch {
                 errorMessage = error.localizedDescription
             }
-            isAddingAccount = false
+            isAddingGmail = false
+        }
+    }
+
+    private func addOutlookAccount() {
+        isAddingOutlook = true
+        errorMessage = nil
+
+        Task {
+            do {
+                try await accountManager.addOutlookAccount()
+                dismiss()
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            isAddingOutlook = false
         }
     }
 }
