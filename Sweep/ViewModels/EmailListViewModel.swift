@@ -15,7 +15,8 @@ class EmailListViewModel: ObservableObject {
 
     var isDetailSheetOpen = false
 
-    private let gmailService = GmailService.shared
+    private let inboxService = UnifiedInboxService.shared
+    private let accountManager = AccountManager.shared
     private let appState = AppState.shared
     private let keptStore = KeptThreadsStore.shared
 
@@ -28,14 +29,14 @@ class EmailListViewModel: ObservableObject {
             return
         }
 
-        await AuthService.shared.waitForReady()
+        await accountManager.restoreAllAccounts()
 
-        guard gmailService.isAuthenticated else { return }
+        guard accountManager.hasAnyAccount else { return }
 
         do {
             let fetchDate = appState.getEmailFetchDate()
-            threads = try await gmailService.fetchThreads(since: fetchDate)
-            gmailService.prefetchBodies(for: threads.map(\.id))
+            threads = try await inboxService.fetchAllThreads(since: fetchDate)
+            inboxService.prefetchBodies(for: threads)
             appState.recordAppOpen()
         } catch {
             self.error = error
@@ -50,28 +51,35 @@ class EmailListViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        let existingIds = Set(threads.map(\.id))
+        let existingIds = Set(threads.map(\.compositeId))
         var restoredThreads: [EmailThread] = []
 
-        for threadId in session.threadIds where !existingIds.contains(threadId) {
-            if let thread = try? await gmailService.fetchThreadDetail(threadId) {
-                restoredThreads.append(thread)
+        for (accountId, threadIds) in session.threadsByAccount() {
+            guard let provider = accountManager.provider(for: accountId) else { continue }
+            for threadId in threadIds {
+                let compositeId = "\(accountId):\(threadId)"
+                guard !existingIds.contains(compositeId) else { continue }
+                if let thread = try? await provider.fetchThreadDetail(threadId) {
+                    restoredThreads.append(thread)
+                }
             }
         }
 
         threads.append(contentsOf: restoredThreads)
         threads.sort { $0.timestamp > $1.timestamp }
-        gmailService.prefetchBodies(for: restoredThreads.map(\.id))
+        inboxService.prefetchBodies(for: restoredThreads)
     }
 
     func toggleKeep(_ thread: EmailThread) {
-        guard let index = threads.firstIndex(where: { $0.id == thread.id }) else { return }
+        guard let index = threads.firstIndex(where: { $0.compositeId == thread.compositeId }) else {
+            return
+        }
         threads[index].isKept.toggle()
 
         if threads[index].isKept {
-            keptStore.addKept(thread.id)
+            keptStore.addKept(thread.id, accountId: thread.accountId)
         } else {
-            keptStore.removeKept(thread.id)
+            keptStore.removeKept(thread.id, accountId: thread.accountId)
         }
     }
 
@@ -84,16 +92,14 @@ class EmailListViewModel: ObservableObject {
         let toProcess = threads.filter { !$0.isKept }
         guard !toProcess.isEmpty else { return }
 
-        let threadIds = toProcess.map(\.id)
-
         do {
             if appState.archiveOnBackground {
-                try await gmailService.archiveAndMarkRead(threadIds)
+                try await inboxService.archiveThreads(toProcess)
             } else {
-                try await gmailService.markReadOnly(threadIds)
+                try await inboxService.markAsRead(toProcess)
             }
             let session = SweepSession(
-                threadIds: threadIds,
+                threads: toProcess,
                 wasArchived: appState.archiveOnBackground
             )
             appState.addArchiveSession(session)
@@ -106,8 +112,8 @@ class EmailListViewModel: ObservableObject {
 
     func blockSender(_ thread: EmailThread) async {
         do {
-            try await gmailService.blockSender(thread.fromEmail)
-            threads.removeAll { $0.id == thread.id }
+            try await inboxService.blockSender(thread)
+            threads.removeAll { $0.compositeId == thread.compositeId }
         } catch {
             self.error = error
         }
@@ -115,8 +121,8 @@ class EmailListViewModel: ObservableObject {
 
     func markAsSpam(_ thread: EmailThread) async {
         do {
-            try await gmailService.markAsSpam(thread.id)
-            threads.removeAll { $0.id == thread.id }
+            try await inboxService.markAsSpam(thread)
+            threads.removeAll { $0.compositeId == thread.compositeId }
         } catch {
             self.error = error
         }
