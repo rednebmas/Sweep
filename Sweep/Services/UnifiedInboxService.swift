@@ -3,6 +3,7 @@
 //  Sweep
 
 import Foundation
+import Combine
 
 enum EmailError: Error, LocalizedError {
     case providerNotFound
@@ -16,7 +17,6 @@ enum EmailError: Error, LocalizedError {
     }
 }
 
-@MainActor
 class UnifiedInboxService: ObservableObject {
     static let shared = UnifiedInboxService()
 

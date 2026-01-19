@@ -12,7 +12,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) {
         NotificationService.shared.setDeviceToken(deviceToken)
         Task {
-            await NotificationService.shared.registerWithServer()
+            await NotificationService.shared.registerAllAccountsWithServer()
         }
     }
 

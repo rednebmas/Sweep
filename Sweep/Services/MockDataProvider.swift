@@ -10,6 +10,8 @@ enum MockDataProvider {
         ProcessInfo.processInfo.arguments.contains("-MockData")
     }
 
+    private static let mockAccountId = "mock-account-id"
+
     static func mockThreads() -> [EmailThread] {
         let now = Date()
         let calendar = Calendar.current
@@ -17,6 +19,8 @@ enum MockDataProvider {
         return [
             EmailThread(
                 id: "mock1",
+                accountId: mockAccountId,
+                providerType: .gmail,
                 subject: "Your flight to Tokyo is confirmed",
                 snippet: "Hi Sam, your booking is complete. Flight JL5 departs SFO on March 15 at 11:30 AM...",
                 from: "Japan Airlines",
@@ -29,6 +33,8 @@ enum MockDataProvider {
             ),
             EmailThread(
                 id: "mock2",
+                accountId: mockAccountId,
+                providerType: .gmail,
                 subject: "Your order has shipped",
                 snippet: "Great news! Your order #482-9271834 is on its way. Track your package...",
                 from: "Amazon",
@@ -41,6 +47,8 @@ enum MockDataProvider {
             ),
             EmailThread(
                 id: "mock3",
+                accountId: mockAccountId,
+                providerType: .gmail,
                 subject: "Coffee this week?",
                 snippet: "Hey! It's been a while. Want to grab coffee sometime this week? I'm free Thursday or Friday...",
                 from: "Alex Chen",
@@ -53,6 +61,8 @@ enum MockDataProvider {
             ),
             EmailThread(
                 id: "mock4",
+                accountId: mockAccountId,
+                providerType: .gmail,
                 subject: "Weekly digest: 12 new posts",
                 snippet: "The most popular articles this week: How to build better habits, Why sleep matters more than...",
                 from: "Medium Daily Digest",
@@ -65,6 +75,8 @@ enum MockDataProvider {
             ),
             EmailThread(
                 id: "mock5",
+                accountId: mockAccountId,
+                providerType: .gmail,
                 subject: "Your statement is ready",
                 snippet: "Your January statement is now available. Log in to view your transactions and account summary...",
                 from: "Chase",
@@ -77,6 +89,8 @@ enum MockDataProvider {
             ),
             EmailThread(
                 id: "mock6",
+                accountId: mockAccountId,
+                providerType: .gmail,
                 subject: "Invitation: Team sync @ Tue Jan 21",
                 snippet: "Sam Bender has invited you to Team sync on Tuesday, January 21 at 10:00am...",
                 from: "Google Calendar",
@@ -89,6 +103,8 @@ enum MockDataProvider {
             ),
             EmailThread(
                 id: "mock7",
+                accountId: mockAccountId,
+                providerType: .gmail,
                 subject: "50% off everything this weekend",
                 snippet: "Don't miss out on our biggest sale of the year. Use code SAVE50 at checkout...",
                 from: "J.Crew",
@@ -101,6 +117,8 @@ enum MockDataProvider {
             ),
             EmailThread(
                 id: "mock8",
+                accountId: mockAccountId,
+                providerType: .gmail,
                 subject: "Re: Project proposal",
                 snippet: "This looks great! I had a few thoughts on the timeline. Can we push the launch to Q2...",
                 from: "Sarah Miller",

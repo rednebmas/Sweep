@@ -3,6 +3,7 @@
 //  Sweep
 
 import Foundation
+import Combine
 
 enum AccountError: Error, LocalizedError {
     case noEmail
@@ -18,7 +19,6 @@ enum AccountError: Error, LocalizedError {
     }
 }
 
-@MainActor
 class AccountManager: ObservableObject {
     static let shared = AccountManager()
 
