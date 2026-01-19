@@ -9,6 +9,10 @@ import SwiftUI
 import SwiftData
 import GoogleSignIn
 
+#if canImport(MSAL)
+import MSAL
+#endif
+
 @main
 struct SweepApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -40,7 +44,15 @@ struct SweepApp: App {
             ContentRouter()
                 .environmentObject(viewModel)
                 .onOpenURL { url in
+                    #if canImport(MSAL)
+                    if url.scheme?.starts(with: "msauth") == true {
+                        MSALPublicClientApplication.handleMSALResponse(url, sourceApplication: nil)
+                    } else {
+                        GIDSignIn.sharedInstance.handle(url)
+                    }
+                    #else
                     GIDSignIn.sharedInstance.handle(url)
+                    #endif
                 }
         }
         .modelContainer(modelContainer)
