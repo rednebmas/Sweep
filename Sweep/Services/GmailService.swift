@@ -28,17 +28,18 @@ enum GmailError: Error, LocalizedError {
 
 @MainActor
 class GmailService: ObservableObject {
-    static let shared = GmailService()
-
     let baseURL = "https://gmail.googleapis.com/gmail/v1/users/me"
-    private let authService = AuthService.shared
+    let auth: AuthService
     private var bodyCache: [String: String] = [:]
     private var inFlightBodyRequests: [String: Task<String, Error>] = [:]
 
-    var isAuthenticated: Bool { authService.isAuthenticated && authService.accessToken != nil }
-    var userEmail: String? { authService.userEmail }
+    var isAuthenticated: Bool { auth.isAuthenticated && auth.accessToken != nil }
+    var userEmail: String? { auth.userEmail }
+    var accountId: String { auth.accountId }
 
-    private init() {}
+    init(auth: AuthService) {
+        self.auth = auth
+    }
 
     func getCachedBody(_ threadId: String) -> String? {
         bodyCache[threadId]
@@ -63,19 +64,19 @@ class GmailService: ObservableObject {
     // MARK: - Auth Passthrough
 
     func signIn() async throws {
-        try await authService.signIn()
+        try await auth.signIn()
     }
 
     func signOut() {
-        authService.signOut()
+        auth.signOut()
     }
 
     // MARK: - API Helpers
 
     func authorizedRequest(_ url: URL) async throws -> URLRequest {
-        try await authService.refreshTokenIfNeeded()
+        try await auth.refreshTokenIfNeeded()
 
-        guard let token = authService.accessToken else {
+        guard let token = auth.accessToken else {
             throw GmailError.notAuthenticated
         }
 

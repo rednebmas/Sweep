@@ -71,6 +71,8 @@ extension GmailService {
 
         return EmailThread(
             id: response.id,
+            accountId: accountId,
+            providerType: .gmail,
             subject: subject,
             snippet: snippet,
             from: fromName,
@@ -79,7 +81,7 @@ extension GmailService {
             hasAttachments: false,
             messageCount: response.messages?.count ?? 1,
             unsubscribeURL: unsubscribeURL,
-            isKept: KeptThreadsStore.shared.isKept(response.id)
+            isKept: KeptThreadsStore.shared.isKept(response.id, accountId: accountId)
         )
     }
 

@@ -9,8 +9,6 @@ import GoogleSignIn
 
 @MainActor
 class AuthService: ObservableObject {
-    static let shared = AuthService()
-
     @Published var isAuthenticated = false
     @Published var isLoading = true
     @Published var userEmail: String?
@@ -23,19 +21,29 @@ class AuthService: ObservableObject {
         currentUser?.accessToken.tokenString
     }
 
-    private init() {
-        restorePreviousSignIn()
+    var accountId: String {
+        guard let email = userEmail else { return UUID().uuidString }
+        return email.data(using: .utf8)?.base64EncodedString() ?? email
     }
 
-    func restorePreviousSignIn() {
-        GIDSignIn.sharedInstance.restorePreviousSignIn { [weak self] user, error in
-            Task { @MainActor in
-                if let user = user {
-                    self?.handleSignInSuccess(user)
-                } else if let error = error {
-                    self?.error = error
+    init() {}
+
+    func restorePreviousSignIn() async -> Bool {
+        await withCheckedContinuation { continuation in
+            GIDSignIn.sharedInstance.restorePreviousSignIn { [weak self] user, error in
+                Task { @MainActor in
+                    if let user = user {
+                        self?.handleSignInSuccess(user)
+                        self?.isLoading = false
+                        continuation.resume(returning: true)
+                    } else {
+                        if let error = error {
+                            self?.error = error
+                        }
+                        self?.isLoading = false
+                        continuation.resume(returning: false)
+                    }
                 }
-                self?.isLoading = false
             }
         }
     }
