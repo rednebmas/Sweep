@@ -8,6 +8,7 @@ import SwiftUI
 struct EmailRowView: View {
     let thread: EmailThread
     let snippetLines: Int
+    var showAccountIndicator = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -30,7 +31,9 @@ struct EmailRowView: View {
 
     private var headerRow: some View {
         HStack {
-            AccountIndicatorView(providerType: thread.providerType)
+            if showAccountIndicator {
+                AccountIndicatorView(providerType: thread.providerType)
+            }
             Text(thread.from)
                 .font(.headline)
                 .lineLimit(1)

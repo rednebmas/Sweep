@@ -29,6 +29,7 @@ class AccountManager: ObservableObject {
     private let accountsKey = "connectedAccounts"
 
     var hasAnyAccount: Bool { !accounts.isEmpty }
+    var hasMultipleAccounts: Bool { accounts.count > 1 }
     var enabledAccounts: [EmailAccount] { accounts.filter(\.isEnabled) }
 
     private init() {

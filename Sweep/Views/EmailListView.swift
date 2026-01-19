@@ -10,6 +10,7 @@ struct EmailListView: View {
     @EnvironmentObject var viewModel: EmailListViewModel
     @ObservedObject private var appState = AppState.shared
     @ObservedObject private var keptStore = KeptThreadsStore.shared
+    @ObservedObject private var accountManager = AccountManager.shared
     @State private var selectedThread: EmailThread?
     @State private var showingKeptSheet = false
 
@@ -125,7 +126,7 @@ struct EmailListView: View {
         List {
             ForEach(viewModel.threads) { thread in
                 ContextMenuWrapper(
-                    content: EmailRowView(thread: thread, snippetLines: appState.snippetLines),
+                    content: EmailRowView(thread: thread, snippetLines: appState.snippetLines, showAccountIndicator: accountManager.hasMultipleAccounts),
                     preview: { EmailPreviewView(thread: thread) },
                     menu: { makeMenu(for: thread) },
                     onPreviewTap: { selectedThread = thread }

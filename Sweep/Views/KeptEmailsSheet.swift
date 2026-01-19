@@ -52,7 +52,7 @@ struct KeptEmailsSheet: View {
     private var threadList: some View {
         List {
             ForEach(threads) { thread in
-                EmailRowView(thread: displayThread(for: thread), snippetLines: appState.snippetLines)
+                EmailRowView(thread: displayThread(for: thread), snippetLines: appState.snippetLines, showAccountIndicator: accountManager.hasMultipleAccounts)
                     .listRowInsets(EdgeInsets())
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         if unkeptCompositeIds.contains(thread.compositeId) {

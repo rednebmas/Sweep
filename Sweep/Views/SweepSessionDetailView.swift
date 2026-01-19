@@ -81,7 +81,7 @@ struct SweepSessionDetailView: View {
             } else {
                 List {
                     ForEach(threads) { thread in
-                        EmailRowView(thread: thread, snippetLines: appState.snippetLines)
+                        EmailRowView(thread: thread, snippetLines: appState.snippetLines, showAccountIndicator: accountManager.hasMultipleAccounts)
                             .listRowInsets(EdgeInsets())
                     }
                 }
