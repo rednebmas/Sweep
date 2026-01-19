@@ -12,6 +12,7 @@ struct SweepSessionDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var viewModel: EmailListViewModel
     @ObservedObject private var appState = AppState.shared
+    @ObservedObject private var accountManager = AccountManager.shared
     @State private var threads: [EmailThread] = []
     @State private var isLoading = true
     @State private var showingConfirmation = false
@@ -92,9 +93,12 @@ struct SweepSessionDetailView: View {
     private func loadThreads() async {
         var loadedThreads: [EmailThread] = []
 
-        for threadId in session.threadIds {
-            if let thread = try? await GmailService.shared.fetchThreadDetail(threadId) {
-                loadedThreads.append(thread)
+        for (accountId, threadIds) in session.threadsByAccount() {
+            guard let provider = accountManager.provider(for: accountId) else { continue }
+            for threadId in threadIds {
+                if let thread = try? await provider.fetchThreadDetail(threadId) {
+                    loadedThreads.append(thread)
+                }
             }
         }
 
@@ -104,13 +108,13 @@ struct SweepSessionDetailView: View {
 
     private func restoreSession() async {
         do {
-            try await GmailService.shared.restoreThreads(session.threadIds, wasArchived: session.wasArchived)
+            try await UnifiedInboxService.shared.restoreThreads(threads, wasArchived: session.wasArchived)
             appState.clearArchiveSession(session)
             await viewModel.reloadAfterUndo(session: session)
             onRestore()
             dismiss()
         } catch {
-            // TODO: Show error
+            // Handle error
         }
     }
 }

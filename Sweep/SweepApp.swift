@@ -59,11 +59,11 @@ struct SweepApp: App {
 }
 
 struct ContentRouter: View {
-    @ObservedObject private var authService = AuthService.shared
+    @ObservedObject private var accountManager = AccountManager.shared
 
     var body: some View {
         Group {
-            if MockDataProvider.isEnabled || authService.isLoading || authService.isAuthenticated {
+            if MockDataProvider.isEnabled || accountManager.isLoading || accountManager.hasAnyAccount {
                 EmailListView()
             } else {
                 SignInView()

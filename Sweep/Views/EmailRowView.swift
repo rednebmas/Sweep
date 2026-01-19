@@ -30,6 +30,7 @@ struct EmailRowView: View {
 
     private var headerRow: some View {
         HStack {
+            AccountIndicatorView(providerType: thread.providerType)
             Text(thread.from)
                 .font(.headline)
                 .lineLimit(1)

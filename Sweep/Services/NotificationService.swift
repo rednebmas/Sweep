@@ -38,36 +38,46 @@ class NotificationService {
         deviceToken = token
     }
 
-    func registerWithServer() async {
+    @MainActor
+    func registerAllAccountsWithServer() async {
         guard let token = deviceToken else { return }
-        guard let email = AuthService.shared.userEmail else { return }
-        guard let authCode = AuthService.shared.serverAuthCode else { return }
 
-        await PushAPIClient.shared.registerDevice(
-            email: email,
-            deviceToken: token,
-            authCode: authCode
-        )
+        for account in AccountManager.shared.enabledAccounts {
+            guard let provider = AccountManager.shared.provider(for: account.id) else { continue }
+
+            switch account.providerType {
+            case .gmail:
+                guard let gmailProvider = provider as? GmailProvider,
+                      let authCode = gmailProvider.serverAuthCode else { continue }
+                await PushAPIClient.shared.registerDevice(
+                    email: account.email,
+                    deviceToken: token,
+                    authCode: authCode
+                )
+            case .outlook:
+                break
+            }
+        }
     }
 
+    @MainActor
     func notifyAppOpened() async {
-        guard let email = AuthService.shared.userEmail else { return }
-        await PushAPIClient.shared.appOpened(email: email)
+        let emails = AccountManager.shared.enabledAccounts.map(\.email)
+        for email in emails {
+            await PushAPIClient.shared.appOpened(email: email)
+        }
     }
 
     func scheduleMorningNotification() async {
         let center = UNUserNotificationCenter.current()
 
-        // Remove existing notification
         center.removePendingNotificationRequests(withIdentifiers: [notificationId])
 
-        // Create content
         let content = UNMutableNotificationContent()
         content.title = "Sweep"
         content.body = "Time to check your inbox"
         content.sound = .default
 
-        // Schedule for 8 AM daily
         var dateComponents = DateComponents()
         dateComponents.hour = 8
         dateComponents.minute = 0

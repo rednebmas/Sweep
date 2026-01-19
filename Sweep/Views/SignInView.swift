@@ -6,7 +6,7 @@
 import SwiftUI
 
 struct SignInView: View {
-    @ObservedObject private var authService = AuthService.shared
+    @ObservedObject private var accountManager = AccountManager.shared
     @State private var isSigningIn = false
     @State private var errorMessage: String?
 
@@ -33,7 +33,7 @@ struct SignInView: View {
 
             VStack(spacing: 16) {
                 Button {
-                    signIn()
+                    signInWithGmail()
                 } label: {
                     HStack {
                         if isSigningIn {
@@ -65,13 +65,13 @@ struct SignInView: View {
         }
     }
 
-    private func signIn() {
+    private func signInWithGmail() {
         isSigningIn = true
         errorMessage = nil
 
         Task {
             do {
-                try await authService.signIn()
+                try await accountManager.addGmailAccount()
             } catch {
                 errorMessage = error.localizedDescription
             }

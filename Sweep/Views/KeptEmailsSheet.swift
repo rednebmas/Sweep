@@ -8,10 +8,11 @@ struct KeptEmailsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var viewModel: EmailListViewModel
     @ObservedObject private var appState = AppState.shared
+    @ObservedObject private var accountManager = AccountManager.shared
     @State private var threads: [EmailThread] = []
     @State private var isLoading = true
     @State private var selectedThread: EmailThread?
-    @State private var unkeptThreadIds: Set<String> = []
+    @State private var unkeptCompositeIds: Set<String> = []
 
     var body: some View {
         NavigationStack {
@@ -54,16 +55,16 @@ struct KeptEmailsSheet: View {
                 EmailRowView(thread: displayThread(for: thread), snippetLines: appState.snippetLines)
                     .listRowInsets(EdgeInsets())
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        if unkeptThreadIds.contains(thread.id) {
+                        if unkeptCompositeIds.contains(thread.compositeId) {
                             Button {
-                                unkeptThreadIds.remove(thread.id)
+                                unkeptCompositeIds.remove(thread.compositeId)
                             } label: {
                                 Label("Keep", systemImage: "checkmark")
                             }
                             .tint(.green)
                         } else {
                             Button {
-                                unkeptThreadIds.insert(thread.id)
+                                unkeptCompositeIds.insert(thread.compositeId)
                             } label: {
                                 Label("Unkeep", systemImage: "xmark")
                             }
@@ -79,14 +80,18 @@ struct KeptEmailsSheet: View {
     }
 
     private func loadKeptThreads() async {
-        let keptIds = KeptThreadsStore.shared.keptThreadIds()
         var loadedThreads: [EmailThread] = []
 
-        for threadId in keptIds {
-            if let thread = try? await GmailService.shared.fetchThreadDetail(threadId) {
-                var keptThread = thread
-                keptThread.isKept = true
-                loadedThreads.append(keptThread)
+        for account in accountManager.accounts {
+            guard let provider = accountManager.provider(for: account.id) else { continue }
+            let keptIds = KeptThreadsStore.shared.keptThreadIds(for: account.id)
+
+            for threadId in keptIds {
+                if let thread = try? await provider.fetchThreadDetail(threadId) {
+                    var keptThread = thread
+                    keptThread.isKept = true
+                    loadedThreads.append(keptThread)
+                }
             }
         }
 
@@ -96,14 +101,14 @@ struct KeptEmailsSheet: View {
 
     private func displayThread(for thread: EmailThread) -> EmailThread {
         var copy = thread
-        copy.isKept = !unkeptThreadIds.contains(thread.id)
+        copy.isKept = !unkeptCompositeIds.contains(thread.compositeId)
         return copy
     }
 
     private func applyUnkeepChanges() {
-        for threadId in unkeptThreadIds {
-            KeptThreadsStore.shared.removeKept(threadId)
-            if let index = viewModel.threads.firstIndex(where: { $0.id == threadId }) {
+        for thread in threads where unkeptCompositeIds.contains(thread.compositeId) {
+            KeptThreadsStore.shared.removeKept(thread.id, accountId: thread.accountId)
+            if let index = viewModel.threads.firstIndex(where: { $0.compositeId == thread.compositeId }) {
                 viewModel.threads[index].isKept = false
             }
         }

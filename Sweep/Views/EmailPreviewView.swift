@@ -59,7 +59,7 @@ struct EmailPreviewView: View {
 
     private func loadBody() async {
         do {
-            emailBody = try await GmailService.shared.fetchEmailBody(thread.id)
+            emailBody = try await UnifiedInboxService.shared.fetchEmailBody(for: thread)
         } catch {
             emailBody = nil
         }

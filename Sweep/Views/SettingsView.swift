@@ -7,9 +7,10 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject private var appState = AppState.shared
-    @ObservedObject private var gmailService = GmailService.shared
+    @ObservedObject private var accountManager = AccountManager.shared
     @State private var selectedSession: ArchiveSession?
     @State private var showAllSweeps = false
+    @State private var showAddAccount = false
 
     var body: some View {
         List {
@@ -25,26 +26,22 @@ struct SettingsView: View {
                 selectedSession = nil
             }
         }
+        .sheet(isPresented: $showAddAccount) {
+            AddAccountSheet()
+        }
     }
 
     private var accountSection: some View {
-        Section("Account") {
-            if gmailService.isAuthenticated {
-                HStack {
-                    Text("Signed in as")
-                    Spacer()
-                    Text(gmailService.userEmail ?? "Unknown")
-                        .foregroundColor(.secondary)
+        Section("Accounts") {
+            ForEach(accountManager.accounts) { account in
+                AccountRowView(account: account) {
+                    accountManager.removeAccount(account)
                 }
-                Button("Sign Out", role: .destructive) {
-                    gmailService.signOut()
-                }
-            } else {
-                Button("Sign in with Google") {
-                    Task {
-                        try? await gmailService.signIn()
-                    }
-                }
+            }
+            Button {
+                showAddAccount = true
+            } label: {
+                Label("Add Account", systemImage: "plus.circle")
             }
         }
     }
@@ -129,5 +126,4 @@ struct SettingsView: View {
                 .listRowBackground(Color.clear)
         }
     }
-
 }
