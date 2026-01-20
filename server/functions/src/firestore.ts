@@ -47,7 +47,21 @@ function parseUserData(data: FirebaseFirestore.DocumentData): UserData {
 
 export async function getUser(email: string, provider: Provider): Promise<UserData | null> {
   const doc = await usersCollection.doc(userKey(email, provider)).get();
-  return doc.exists ? parseUserData(doc.data()!) : null;
+  if (doc.exists) return parseUserData(doc.data()!);
+
+  // Fallback: check legacy key format (email only, no provider suffix)
+  if (provider === 'gmail') {
+    const legacyDoc = await usersCollection.doc(email).get();
+    if (legacyDoc.exists) {
+      // Migrate to new key format
+      const data = legacyDoc.data()!;
+      await usersCollection.doc(userKey(email, provider)).set({ ...data, provider });
+      await usersCollection.doc(email).delete();
+      return parseUserData(data);
+    }
+  }
+
+  return null;
 }
 
 export async function getUserByKey(key: string): Promise<UserData | null> {
