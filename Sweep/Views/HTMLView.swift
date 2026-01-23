@@ -76,6 +76,24 @@ struct HTMLView: UIViewRepresentable {
             </style>
         </head>
         <body>\(content)</body>
+        <script>
+            (function() {
+                const urlPattern = /(https?:\\/\\/[^\\s<>"']+)/g;
+                function linkify(node) {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const text = node.textContent;
+                        if (text.match(urlPattern)) {
+                            const span = document.createElement('span');
+                            span.innerHTML = text.replace(urlPattern, '<a href="$1">$1</a>');
+                            node.parentNode.replaceChild(span, node);
+                        }
+                    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'A' && node.tagName !== 'SCRIPT') {
+                        Array.from(node.childNodes).forEach(linkify);
+                    }
+                }
+                linkify(document.body);
+            })();
+        </script>
         </html>
         """
     }
