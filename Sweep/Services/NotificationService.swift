@@ -9,9 +9,31 @@ import UIKit
 class NotificationService {
     static let shared = NotificationService()
 
+    static let categoryIdentifier = "NEW_EMAIL"
+    static let markAllReadAction = "MARK_ALL_READ"
+
     private(set) var deviceToken: String?
 
-    private init() {}
+    private init() {
+        registerCategories()
+    }
+
+    private func registerCategories() {
+        let markAllReadAction = UNNotificationAction(
+            identifier: Self.markAllReadAction,
+            title: "Mark All Read",
+            options: []
+        )
+
+        let category = UNNotificationCategory(
+            identifier: Self.categoryIdentifier,
+            actions: [markAllReadAction],
+            intentIdentifiers: [],
+            options: []
+        )
+
+        UNUserNotificationCenter.current().setNotificationCategories([category])
+    }
 
     func requestPermission() async -> Bool {
         do {

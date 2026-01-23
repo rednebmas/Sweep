@@ -8,10 +8,7 @@ struct AddAccountSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var accountManager = AccountManager.shared
     @State private var isAddingGmail = false
-    @State private var isAddingOutlook = false
     @State private var errorMessage: String?
-
-    private var isAddingAccount: Bool { isAddingGmail || isAddingOutlook }
 
     var body: some View {
         NavigationStack {
@@ -25,17 +22,7 @@ struct AddAccountSheet: View {
                             isLoading: isAddingGmail
                         )
                     }
-                    .disabled(isAddingAccount)
-
-                    Button {
-                        addOutlookAccount()
-                    } label: {
-                        providerRow(
-                            type: .outlook,
-                            isLoading: isAddingOutlook
-                        )
-                    }
-                    .disabled(isAddingAccount)
+                    .disabled(isAddingGmail)
                 }
 
                 if let error = errorMessage {
@@ -90,18 +77,4 @@ struct AddAccountSheet: View {
         }
     }
 
-    private func addOutlookAccount() {
-        isAddingOutlook = true
-        errorMessage = nil
-
-        Task {
-            do {
-                try await accountManager.addOutlookAccount()
-                dismiss()
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-            isAddingOutlook = false
-        }
-    }
 }

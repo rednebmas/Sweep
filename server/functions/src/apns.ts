@@ -57,7 +57,8 @@ export function sendNotification(deviceToken: string, title: string, body: strin
       aps: {
         alert: { title, body },
         sound: 'default',
-        'mutable-content': 1
+        'mutable-content': 1,
+        category: 'NEW_EMAIL'
       }
     });
 
