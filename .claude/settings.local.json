@@ -20,7 +20,8 @@
       "Bash(for secret in google-client-id google-client-secret sweep-api-key)",
       "Bash(do)",
       "Bash(gcloud secrets add-iam-policy-binding:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(./server/scripts/deploy-functions.sh:*)"
     ]
   },
   "sandbox": {
