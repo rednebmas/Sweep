@@ -61,3 +61,7 @@ Before releasing to production, update these settings:
 2. Review spec in brain repo for current requirements
 3. Run app to verify baseline
 4. Work one feature at a time
+
+## Testing Accounts
+
+- **Outlook:** sweep.app.testing@outlook.com / Testing1!
