@@ -5,6 +5,7 @@
 
 import SwiftUI
 import WebKit
+import UIKit
 
 struct HTMLView: UIViewRepresentable {
     let html: String
@@ -15,6 +16,7 @@ struct HTMLView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         let webView = WebViewPool.shared.acquire()
+        webView.navigationDelegate = context.coordinator
         context.coordinator.webView = webView
         return webView
     }
@@ -28,8 +30,22 @@ struct HTMLView: UIViewRepresentable {
         WebViewPool.shared.release(webView)
     }
 
-    class Coordinator {
+    class Coordinator: NSObject, WKNavigationDelegate {
         var webView: WKWebView?
+
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationAction: WKNavigationAction,
+            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        ) {
+            if navigationAction.navigationType == .linkActivated,
+               let url = navigationAction.request.url {
+                UIApplication.shared.open(url)
+                decisionHandler(.cancel)
+                return
+            }
+            decisionHandler(.allow)
+        }
     }
 
     private func wrapHTML(_ content: String) -> String {

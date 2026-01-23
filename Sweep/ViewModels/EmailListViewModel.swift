@@ -38,7 +38,6 @@ class EmailListViewModel: ObservableObject {
             let fetchDate = appState.getEmailFetchDate()
             threads = try await inboxService.fetchAllThreads(since: fetchDate)
             inboxService.prefetchBodies(for: threads)
-            appState.recordAppOpen()
         } catch {
             self.error = error
         }
@@ -104,6 +103,7 @@ class EmailListViewModel: ObservableObject {
                 wasArchived: appState.archiveOnBackground
             )
             appState.addArchiveSession(session)
+            appState.updateEmailFetchTimestamp()
         } catch {
             self.error = error
         }

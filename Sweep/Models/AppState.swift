@@ -46,9 +46,8 @@ class AppState: ObservableObject {
         self.archiveOnBackground = UserDefaults.standard.bool(forKey: "archiveOnBackground")
     }
 
-    func recordAppOpen() {
-        let now = Date()
-        lastOpenedTimestamp = now
+    func updateEmailFetchTimestamp() {
+        lastOpenedTimestamp = Date()
         isFirstLaunch = false
     }
 

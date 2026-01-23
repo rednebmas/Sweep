@@ -44,7 +44,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             if !threads.isEmpty {
                 try await UnifiedInboxService.shared.markAsRead(threads)
             }
-            AppState.shared.recordAppOpen()
+            AppState.shared.updateEmailFetchTimestamp()
             UIApplication.shared.applicationIconBadgeNumber = 0
         } catch {
             print("Failed to mark all as read: \(error)")
