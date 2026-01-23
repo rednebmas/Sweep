@@ -14,6 +14,7 @@ class EmailListViewModel: ObservableObject {
     @Published var showSkippedProcessingToast = false
 
     var isDetailSheetOpen = false
+    var isBrowserOpen = false
 
     private let inboxService = UnifiedInboxService.shared
     private let accountManager = AccountManager.shared
@@ -84,7 +85,7 @@ class EmailListViewModel: ObservableObject {
     }
 
     func processNonKeptThreads() async {
-        if isDetailSheetOpen {
+        if isDetailSheetOpen || isBrowserOpen {
             showSkippedProcessingToast = true
             return
         }
@@ -130,6 +131,7 @@ class EmailListViewModel: ObservableObject {
 
     func unsubscribe(_ thread: EmailThread) {
         guard let url = thread.unsubscribeURL else { return }
+        isBrowserOpen = true
         UIApplication.shared.open(url)
     }
 }

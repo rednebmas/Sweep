@@ -62,6 +62,7 @@ struct SweepApp: App {
                     await viewModel.processNonKeptThreads()
                 }
             } else if scenePhase == .active {
+                viewModel.isBrowserOpen = false
                 Task {
                     await NotificationService.shared.notifyAppOpened()
                 }
