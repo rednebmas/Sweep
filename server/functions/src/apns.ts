@@ -56,8 +56,8 @@ export function sendNotification(deviceToken: string, title: string, body: strin
     const payload = JSON.stringify({
       aps: {
         alert: { title, body },
-        sound: 'default',
         'mutable-content': 1,
+        'interruption-level': 'passive',
         category: 'NEW_EMAIL'
       }
     });
@@ -73,6 +73,7 @@ export function sendNotification(deviceToken: string, title: string, body: strin
       'apns-topic': BUNDLE_ID,
       'apns-collapse-id': COLLAPSE_ID,
       'apns-push-type': 'alert',
+      'apns-priority': '5',
       'content-type': 'application/json'
     });
 

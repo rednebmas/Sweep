@@ -15,7 +15,7 @@ export function formatNotification(pendingEmails: EmailData[]): NotificationCont
   );
 
   if (sorted.length <= 3) {
-    const lines = sorted.map(e => `${e.sender}: ${e.subject}`);
+    const lines = sorted.map(e => `• ${e.sender}: ${e.subject}`);
     return {
       title: 'Sweep',
       body: lines.join('\n')
