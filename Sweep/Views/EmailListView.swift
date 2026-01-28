@@ -33,6 +33,8 @@ struct EmailListView: View {
                 Group {
                     if viewModel.isLoading && viewModel.threads.isEmpty {
                         loadingView
+                    } else if viewModel.error != nil {
+                        errorView
                     } else if viewModel.threads.isEmpty {
                         emptyView
                     } else {
@@ -100,6 +102,24 @@ struct EmailListView: View {
                     systemImage: "tray",
                     description: Text("You're all caught up!")
                 )
+                .frame(width: geometry.size.width, height: geometry.size.height)
+            }
+        }
+    }
+
+    private var errorView: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                ContentUnavailableView {
+                    Label("Unable to Load", systemImage: "wifi.exclamationmark")
+                } description: {
+                    Text(viewModel.error?.localizedDescription ?? "Something went wrong")
+                } actions: {
+                    Button("Retry") {
+                        Task { await viewModel.refresh() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
                 .frame(width: geometry.size.width, height: geometry.size.height)
             }
         }

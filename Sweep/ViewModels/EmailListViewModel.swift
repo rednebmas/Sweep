@@ -23,6 +23,7 @@ class EmailListViewModel: ObservableObject {
 
     func loadThreads() async {
         isLoading = true
+        error = nil
         defer { isLoading = false }
 
         if MockDataProvider.isEnabled {

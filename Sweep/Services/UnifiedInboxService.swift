@@ -8,11 +8,13 @@ import Combine
 enum EmailError: Error, LocalizedError {
     case providerNotFound
     case noEnabledAccounts
+    case allProvidersFailed
 
     var errorDescription: String? {
         switch self {
         case .providerNotFound: return "Email provider not found"
         case .noEnabledAccounts: return "No enabled accounts"
+        case .allProvidersFailed: return "Unable to connect to email accounts"
         }
     }
 }
@@ -31,11 +33,17 @@ class UnifiedInboxService: ObservableObject {
         }
 
         return try await withThrowingTaskGroup(of: [EmailThread].self) { group in
+            var taskCount = 0
             for account in enabledAccounts {
                 guard let provider = accountManager.provider(for: account.id) else { continue }
+                taskCount += 1
                 group.addTask {
                     try await provider.fetchThreads(since: date)
                 }
+            }
+
+            guard taskCount > 0 else {
+                throw EmailError.allProvidersFailed
             }
 
             var all: [EmailThread] = []
