@@ -50,7 +50,7 @@ gcloud functions deploy appOpened \
   --trigger-http \
   --allow-unauthenticated \
   --entry-point=appOpened \
-  --set-secrets="SWEEP_API_KEY=sweep-api-key:latest,AZURE_CLIENT_ID=azure-client-id:latest,AZURE_CLIENT_SECRET=azure-client-secret:latest"
+  --set-secrets="SWEEP_API_KEY=sweep-api-key:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,AZURE_CLIENT_ID=azure-client-id:latest,AZURE_CLIENT_SECRET=azure-client-secret:latest"
 
 echo "Deploying onOutlookNotification (HTTP webhook)..."
 gcloud functions deploy onOutlookNotification \

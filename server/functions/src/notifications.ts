@@ -14,6 +14,13 @@ export function formatNotification(pendingEmails: EmailData[]): NotificationCont
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 
+  if (sorted.length === 1) {
+    return {
+      title: 'Sweep',
+      body: `${sorted[0].sender}: ${sorted[0].subject}`
+    };
+  }
+
   if (sorted.length <= 3) {
     const lines = sorted.map(e => `• ${e.sender}: ${e.subject}`);
     return {
