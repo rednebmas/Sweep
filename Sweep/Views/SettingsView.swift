@@ -14,6 +14,7 @@ struct SettingsView: View {
 
     var body: some View {
         List {
+            SubscriptionSectionView()
             accountSection
             displaySection
             behaviorSection

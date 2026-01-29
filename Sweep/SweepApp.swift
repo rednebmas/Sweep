@@ -73,13 +73,21 @@ struct SweepApp: App {
 
 struct ContentRouter: View {
     @ObservedObject private var accountManager = AccountManager.shared
+    @ObservedObject private var storeService = StoreService.shared
+    @ObservedObject private var trialService = TrialService.shared
+
+    private var hasAccess: Bool {
+        storeService.isPurchased || trialService.isTrialActive
+    }
 
     var body: some View {
         Group {
-            if MockDataProvider.isEnabled || accountManager.isLoading || accountManager.hasAnyAccount {
+            if !accountManager.isLoading && !accountManager.hasAnyAccount && !MockDataProvider.isEnabled {
+                SignInView()
+            } else if hasAccess || MockDataProvider.isEnabled || accountManager.isLoading {
                 EmailListView()
             } else {
-                SignInView()
+                PaywallView()
             }
         }
         .onAppear {
