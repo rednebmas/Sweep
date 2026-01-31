@@ -105,6 +105,7 @@ class EmailListViewModel: ObservableObject {
             )
             appState.addArchiveSession(session)
             appState.updateEmailFetchTimestamp()
+            NotificationService.shared.clearNewEmailNotifications()
         } catch {
             self.error = error
         }

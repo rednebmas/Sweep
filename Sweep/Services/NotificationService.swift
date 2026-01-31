@@ -94,4 +94,13 @@ class NotificationService {
         }
     }
 
+    func clearNewEmailNotifications() {
+        let center = UNUserNotificationCenter.current()
+        center.getDeliveredNotifications { notifications in
+            let ids = notifications
+                .filter { $0.request.content.categoryIdentifier == Self.categoryIdentifier }
+                .map { $0.request.identifier }
+            center.removeDeliveredNotifications(withIdentifiers: ids)
+        }
+    }
 }

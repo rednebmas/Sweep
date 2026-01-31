@@ -48,6 +48,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             }
             AppState.shared.updateEmailFetchTimestamp()
             UIApplication.shared.applicationIconBadgeNumber = 0
+            NotificationService.shared.clearNewEmailNotifications()
         } catch {
             print("Failed to mark all as read: \(error)")
         }
