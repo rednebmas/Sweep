@@ -65,3 +65,4 @@ Before releasing to production, update these settings:
 ## Testing Accounts
 
 - **Outlook:** sweep.app.testing@outlook.com / Testing1!
+- **Gmail:** sweep.app.testing@gmail.com / Testing1!
