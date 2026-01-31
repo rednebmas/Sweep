@@ -21,7 +21,14 @@
       "Bash(do)",
       "Bash(gcloud secrets add-iam-policy-binding:*)",
       "Bash(done)",
-      "Bash(./server/scripts/deploy-functions.sh:*)"
+      "Bash(./server/scripts/deploy-functions.sh:*)",
+      "Bash(gcloud firestore export:*)",
+      "Bash(gcloud pubsub subscriptions list:*)",
+      "Bash(gcloud pubsub subscriptions describe:*)",
+      "Bash(gcloud pubsub subscriptions pull:*)",
+      "Bash(npm run build:*)",
+      "Bash(gcloud functions deploy:*)",
+      "Bash(xcrun simctl launch:*)"
     ]
   },
   "sandbox": {
