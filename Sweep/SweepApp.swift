@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 import GoogleSignIn
 
 #if canImport(MSAL)
@@ -54,12 +55,26 @@ struct SweepApp: App {
                     GIDSignIn.sharedInstance.handle(url)
                     #endif
                 }
+                .onReceive(NotificationCenter.default.publisher(for: NotificationDelegate.didTapNotification)) { _ in
+                    Task {
+                        await viewModel.loadThreads()
+                    }
+                }
         }
         .modelContainer(modelContainer)
         .onChange(of: scenePhase) {
             if scenePhase == .background {
+                let app = UIApplication.shared
+                var backgroundTaskId: UIBackgroundTaskIdentifier = .invalid
+                backgroundTaskId = app.beginBackgroundTask {
+                    app.endBackgroundTask(backgroundTaskId)
+                    backgroundTaskId = .invalid
+                }
                 Task {
                     await viewModel.processNonKeptThreads()
+                    if backgroundTaskId != .invalid {
+                        app.endBackgroundTask(backgroundTaskId)
+                    }
                 }
             } else if scenePhase == .active {
                 viewModel.isBrowserOpen = false

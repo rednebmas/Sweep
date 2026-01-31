@@ -7,6 +7,7 @@ import UIKit
 
 class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationDelegate()
+    static let didTapNotification = Notification.Name("NotificationDelegate.didTapNotification")
 
     private override init() {
         super.init()
@@ -23,6 +24,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
                 completionHandler()
             }
         } else {
+            NotificationCenter.default.post(name: Self.didTapNotification, object: nil)
             completionHandler()
         }
     }

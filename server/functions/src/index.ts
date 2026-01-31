@@ -69,7 +69,7 @@ functions.cloudEvent('onGmailNotification', async (event: functions.CloudEvent<{
   const pendingEmails = await getPendingEmails(emailAddress, 'gmail');
   const { title, body } = formatNotification(pendingEmails);
 
-  await sendNotification(user.deviceToken, title, body);
+  await sendNotification(user.deviceToken, title, body, pendingEmails.length);
   console.log(`Sent Gmail notification to ${emailAddress}: ${pendingEmails.length} emails`);
 });
 
@@ -139,7 +139,7 @@ functions.http('onOutlookNotification', async (req: functions.Request, res: func
       const pendingEmails = await getPendingEmails(email, 'outlook');
       const { title, body } = formatNotification(pendingEmails);
 
-      await sendNotification(user.deviceToken, title, body);
+      await sendNotification(user.deviceToken, title, body, pendingEmails.length);
       console.log(`Sent Outlook notification to ${email}: ${pendingEmails.length} emails`);
     } catch (error) {
       console.error(`Error processing Outlook notification for ${email}:`, error);

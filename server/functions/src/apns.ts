@@ -48,7 +48,7 @@ export interface APNsResult {
   error?: string;
 }
 
-export function sendNotification(deviceToken: string, title: string, body: string): Promise<APNsResult> {
+export function sendNotification(deviceToken: string, title: string, body: string, badge: number): Promise<APNsResult> {
   return new Promise((resolve, reject) => {
     const jwt = generateJWT();
     const path = `/3/device/${deviceToken}`;
@@ -56,6 +56,7 @@ export function sendNotification(deviceToken: string, title: string, body: strin
     const payload = JSON.stringify({
       aps: {
         alert: { title, body },
+        badge,
         'mutable-content': 1,
         'interruption-level': 'passive',
         category: 'NEW_EMAIL'
