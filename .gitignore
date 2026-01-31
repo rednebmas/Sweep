@@ -10,3 +10,4 @@ Pods/
 .build/
 node_modules/
 dist/
+fastlane/report.xml
