@@ -78,6 +78,22 @@ class UnifiedInboxService: ObservableObject {
         }
     }
 
+    func applyKeptLabel(_ threads: [EmailThread]) async throws {
+        let grouped = Dictionary(grouping: threads, by: \.accountId)
+        for (accountId, accountThreads) in grouped {
+            guard let provider = accountManager.provider(for: accountId) else { continue }
+            try await provider.applyKeptLabel(accountThreads.map(\.id))
+        }
+    }
+
+    func removeKeptLabel(_ threads: [EmailThread]) async throws {
+        let grouped = Dictionary(grouping: threads, by: \.accountId)
+        for (accountId, accountThreads) in grouped {
+            guard let provider = accountManager.provider(for: accountId) else { continue }
+            try await provider.removeKeptLabel(accountThreads.map(\.id))
+        }
+    }
+
     func fetchEmailBody(for thread: EmailThread) async throws -> String {
         guard let provider = accountManager.provider(for: thread.accountId) else {
             throw EmailError.providerNotFound

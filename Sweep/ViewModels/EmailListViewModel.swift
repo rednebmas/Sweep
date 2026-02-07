@@ -79,8 +79,10 @@ class EmailListViewModel: ObservableObject {
 
         if threads[index].isKept {
             keptStore.addKept(thread.id, accountId: thread.accountId)
+            Task { try? await inboxService.applyKeptLabel([thread]) }
         } else {
             keptStore.removeKept(thread.id, accountId: thread.accountId)
+            Task { try? await inboxService.removeKeptLabel([thread]) }
         }
     }
 
@@ -104,7 +106,8 @@ class EmailListViewModel: ObservableObject {
                 wasArchived: appState.archiveOnBackground
             )
             appState.addArchiveSession(session)
-            appState.updateEmailFetchTimestamp()
+            let newestDate = threads.map(\.timestamp).max() ?? Date()
+            appState.updateEmailFetchTimestamp(newestEmailDate: newestDate)
             NotificationService.shared.clearNewEmailNotifications()
         } catch {
             self.error = error

@@ -46,7 +46,8 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             if !threads.isEmpty {
                 try await UnifiedInboxService.shared.markAsRead(threads)
             }
-            AppState.shared.updateEmailFetchTimestamp()
+            let newestDate = threads.map(\.timestamp).max() ?? Date()
+            AppState.shared.updateEmailFetchTimestamp(newestEmailDate: newestDate)
             UIApplication.shared.applicationIconBadgeNumber = 0
             NotificationService.shared.clearNewEmailNotifications()
         } catch {

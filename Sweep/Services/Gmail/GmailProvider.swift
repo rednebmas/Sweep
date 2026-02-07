@@ -81,4 +81,12 @@ class GmailProvider: EmailProviderProtocol {
     func restoreThreads(_ threadIds: [String], wasArchived: Bool) async throws {
         try await service.restoreThreads(threadIds, wasArchived: wasArchived)
     }
+
+    func applyKeptLabel(_ threadIds: [String]) async throws {
+        try await service.applyKeptLabel(threadIds)
+    }
+
+    func removeKeptLabel(_ threadIds: [String]) async throws {
+        try await service.removeKeptLabel(threadIds)
+    }
 }

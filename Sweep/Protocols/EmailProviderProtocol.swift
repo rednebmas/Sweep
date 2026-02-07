@@ -27,4 +27,11 @@ protocol EmailProviderProtocol: AnyObject {
     func markAsSpam(_ threadId: String) async throws
     func blockSender(_ email: String) async throws
     func restoreThreads(_ threadIds: [String], wasArchived: Bool) async throws
+    func applyKeptLabel(_ threadIds: [String]) async throws
+    func removeKeptLabel(_ threadIds: [String]) async throws
+}
+
+extension EmailProviderProtocol {
+    func applyKeptLabel(_ threadIds: [String]) async throws {}
+    func removeKeptLabel(_ threadIds: [String]) async throws {}
 }

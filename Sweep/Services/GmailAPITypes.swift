@@ -88,3 +88,22 @@ struct BodyResponse: Codable {
 struct AttachmentResponse: Codable {
     let data: String
 }
+
+
+// MARK: - Label Types
+
+struct LabelListResponse: Codable {
+    let labels: [GmailLabel]?
+}
+
+struct GmailLabel: Codable {
+    let id: String
+    let name: String
+}
+
+struct CreateLabelRequest: Codable {
+    let name: String
+    let labelListVisibility: String
+    let messageListVisibility: String
+}
+

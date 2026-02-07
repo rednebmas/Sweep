@@ -106,11 +106,15 @@ struct KeptEmailsSheet: View {
     }
 
     private func applyUnkeepChanges() {
-        for thread in threads where unkeptCompositeIds.contains(thread.compositeId) {
+        let unkeptThreads = threads.filter { unkeptCompositeIds.contains($0.compositeId) }
+        for thread in unkeptThreads {
             KeptThreadsStore.shared.removeKept(thread.id, accountId: thread.accountId)
             if let index = viewModel.threads.firstIndex(where: { $0.compositeId == thread.compositeId }) {
                 viewModel.threads[index].isKept = false
             }
+        }
+        if !unkeptThreads.isEmpty {
+            Task { try? await UnifiedInboxService.shared.removeKeptLabel(unkeptThreads) }
         }
     }
 }

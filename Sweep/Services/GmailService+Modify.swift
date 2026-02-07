@@ -110,4 +110,46 @@ extension GmailService {
             try await batchModifyThreads(threadIds, addLabels: ["UNREAD"], removeLabels: [])
         }
     }
+
+    // MARK: - Kept Label
+
+    func getOrCreateKeptLabelId() async throws -> String {
+        if let cached = keptLabelId { return cached }
+
+        let url = URL(string: "\(baseURL)/labels")!
+        let request = try await authorizedRequest(url)
+        let response: LabelListResponse = try await performRequest(request)
+
+        if let existing = response.labels?.first(where: { $0.name == "kept" }) {
+            keptLabelId = existing.id
+            return existing.id
+        }
+
+        let createURL = URL(string: "\(baseURL)/labels")!
+        var createRequest = try await authorizedRequest(createURL)
+        createRequest.httpMethod = "POST"
+        createRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = CreateLabelRequest(
+            name: "kept",
+            labelListVisibility: "labelHide",
+            messageListVisibility: "hide"
+        )
+        createRequest.httpBody = try JSONEncoder().encode(body)
+
+        let label: GmailLabel = try await performRequest(createRequest)
+        keptLabelId = label.id
+        return label.id
+    }
+
+    func applyKeptLabel(_ threadIds: [String]) async throws {
+        let labelId = try await getOrCreateKeptLabelId()
+        try await batchModifyThreads(threadIds, addLabels: [labelId], removeLabels: [])
+    }
+
+    func removeKeptLabel(_ threadIds: [String]) async throws {
+        let labelId = try await getOrCreateKeptLabelId()
+        try await batchModifyThreads(threadIds, addLabels: [], removeLabels: [labelId])
+    }
+
 }

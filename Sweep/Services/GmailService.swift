@@ -32,6 +32,7 @@ class GmailService: ObservableObject {
     let auth: AuthService
     private var bodyCache: [String: String] = [:]
     private var inFlightBodyRequests: [String: Task<String, Error>] = [:]
+    var keptLabelId: String?
 
     var isAuthenticated: Bool { auth.isAuthenticated && auth.accessToken != nil }
     var userEmail: String? { auth.userEmail }
@@ -59,6 +60,7 @@ class GmailService: ObservableObject {
 
     func clearCache() {
         bodyCache.removeAll()
+        keptLabelId = nil
     }
 
     // MARK: - Auth Passthrough

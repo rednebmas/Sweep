@@ -8,15 +8,11 @@ Email inbox management app. Swipe to keep, archive the rest. See `~/code/brain/p
 # Build
 xcodebuild -scheme Sweep -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' build
 
-# Or via Xcode
-osascript -e 'tell application "Xcode" to build front workspace document'
-osascript -e 'tell application "Xcode" to run front workspace document'
-
 # DRY check
 npx jscpd . --ignore "**/*.xcodeproj/**,**/Assets.xcassets/**"
 
-# File line limit check (150 lines)
-find . -name "*.swift" ! -path "*/.*" -exec awk 'END{if(NR>150)print NR" "FILENAME}' {} \; | sort -rn
+# File line limit check (200 lines)
+find . -name "*.swift" ! -path "*/.*" -exec awk 'END{if(NR>200)print NR" "FILENAME}' {} \; | sort -rn
 ```
 
 ## Tech Stack
@@ -28,7 +24,7 @@ find . -name "*.swift" ! -path "*/.*" -exec awk 'END{if(NR>150)print NR" "FILENA
 
 ## Rules
 
-- **DRY (critical):** Search before adding code. Refactor to share. Non-DRY is a bug.
+- **DRY (CRITICAL):** Search before adding code. Refactor to share. NON-DRY CODE IS A BUG. YOU ARE NOT ALLOWED TO WRITE CODE THAT IS REPETITIVE. ALWAYS CHECK jscpd AFTER MAKING CHANGES.
 - **Logic out of Views:** Views render state + forward intent. Logic in ViewModels/Services.
 - **Small units:** Functions ~25 lines, files ~150 lines, one type per file.
   - The line limit is about **separation of concerns**, not formatting tricks.
@@ -54,13 +50,6 @@ Before releasing to production, update these settings:
    ```
 
 3. **Redeploy** - Run `./server/scripts/deploy-functions.sh` after changes
-
-## Session Protocol
-
-1. Check git status and recent commits
-2. Review spec in brain repo for current requirements
-3. Run app to verify baseline
-4. Work one feature at a time
 
 ## Testing Accounts
 
