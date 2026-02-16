@@ -54,6 +54,19 @@ struct OutlookBody: Decodable {
     let content: String?
 }
 
+struct OutlookAttachmentListResponse: Decodable {
+    let value: [OutlookAttachment]?
+}
+
+struct OutlookAttachment: Decodable {
+    let id: String
+    let name: String?
+    let contentType: String?
+    let size: Int?
+    let isInline: Bool?
+    let contentBytes: String?
+}
+
 struct OutlookModifyRequest: Encodable {
     let isRead: Bool?
 

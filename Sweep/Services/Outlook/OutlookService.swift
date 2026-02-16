@@ -8,6 +8,7 @@ class OutlookService {
     let auth: OutlookAuth
     let baseURL = "https://graph.microsoft.com/v1.0/me"
     private var bodyCache: [String: String] = [:]
+    private var attachmentCache: [String: [EmailAttachment]] = [:]
 
     var accountId: String { auth.accountId }
     var isAuthenticated: Bool { auth.isAuthenticated }
@@ -24,8 +25,17 @@ class OutlookService {
         bodyCache[messageId] = body
     }
 
+    func getCachedAttachments(_ messageId: String) -> [EmailAttachment]? {
+        attachmentCache[messageId]
+    }
+
+    func cacheAttachments(_ messageId: String, attachments: [EmailAttachment]) {
+        attachmentCache[messageId] = attachments
+    }
+
     func clearCache() {
         bodyCache.removeAll()
+        attachmentCache.removeAll()
     }
 
     func authorizedRequest(_ url: URL) async throws -> URLRequest {

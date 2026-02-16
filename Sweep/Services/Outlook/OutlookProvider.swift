@@ -80,4 +80,12 @@ class OutlookProvider: EmailProviderProtocol {
     func restoreThreads(_ threadIds: [String], wasArchived: Bool) async throws {
         try await service.restoreMessages(threadIds, wasArchived: wasArchived)
     }
+
+    func fetchAttachments(_ threadId: String) async throws -> [EmailAttachment] {
+        try await service.fetchAttachments(threadId)
+    }
+
+    func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data {
+        try await service.downloadAttachmentData(attachment)
+    }
 }

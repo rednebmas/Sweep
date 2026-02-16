@@ -31,6 +31,7 @@ class GmailService: ObservableObject {
     let baseURL = "https://gmail.googleapis.com/gmail/v1/users/me"
     let auth: AuthService
     private var bodyCache: [String: String] = [:]
+    private var attachmentCache: [String: [EmailAttachment]] = [:]
     private var inFlightBodyRequests: [String: Task<String, Error>] = [:]
     var keptLabelId: String?
 
@@ -58,9 +59,23 @@ class GmailService: ObservableObject {
         inFlightBodyRequests[threadId] = task
     }
 
+    func getCachedAttachments(_ threadId: String) -> [EmailAttachment] {
+        attachmentCache[threadId] ?? []
+    }
+
+    func cacheAttachments(_ threadId: String, attachments: [EmailAttachment]) {
+        attachmentCache[threadId] = attachments
+    }
+
     func clearCache() {
         bodyCache.removeAll()
+        attachmentCache.removeAll()
         keptLabelId = nil
+    }
+
+    func isInlineImage(_ payload: PayloadFullResponse) -> Bool {
+        guard let mimeType = payload.mimeType, mimeType.hasPrefix("image/") else { return false }
+        return payload.headers?.contains { $0.name.lowercased() == "content-id" } ?? false
     }
 
     // MARK: - Auth Passthrough

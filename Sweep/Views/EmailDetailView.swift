@@ -9,6 +9,7 @@ struct EmailDetailView: View {
     let thread: EmailThread
     @Environment(\.dismiss) private var dismiss
     @State private var emailBody: String?
+    @State private var attachments: [EmailAttachment] = []
     @State private var isLoading = true
 
     var body: some View {
@@ -56,10 +57,8 @@ struct EmailDetailView: View {
                     .foregroundColor(.secondary)
             }
 
-            if thread.hasAttachments {
-                Label("Has attachments", systemImage: "paperclip")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+            if !attachments.isEmpty {
+                AttachmentListView(attachments: attachments, thread: thread)
             }
         }
     }
@@ -84,6 +83,7 @@ struct EmailDetailView: View {
     private func loadBody() async {
         do {
             emailBody = try await UnifiedInboxService.shared.fetchEmailBody(for: thread)
+            attachments = (try? await UnifiedInboxService.shared.fetchAttachments(for: thread)) ?? []
         } catch {
             emailBody = nil
         }

@@ -89,4 +89,12 @@ class GmailProvider: EmailProviderProtocol {
     func removeKeptLabel(_ threadIds: [String]) async throws {
         try await service.removeKeptLabel(threadIds)
     }
+
+    func fetchAttachments(_ threadId: String) async throws -> [EmailAttachment] {
+        service.getCachedAttachments(threadId)
+    }
+
+    func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data {
+        try await service.downloadAttachmentData(attachment)
+    }
 }

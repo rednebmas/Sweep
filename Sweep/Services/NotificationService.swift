@@ -88,6 +88,8 @@ class NotificationService {
 
     @MainActor
     func notifyAppOpened() async {
+        clearNewEmailNotifications()
+        try? await UNUserNotificationCenter.current().setBadgeCount(0)
         for account in AccountManager.shared.enabledAccounts {
             let provider = account.providerType == .gmail ? "gmail" : "outlook"
             await PushAPIClient.shared.appOpened(email: account.email, provider: provider)

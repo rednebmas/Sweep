@@ -17,22 +17,6 @@ struct ThreadRef: Codable {
     let historyId: String?
 }
 
-struct ThreadDetailResponse: Codable {
-    let id: String
-    let snippet: String?
-    let messages: [MessageResponse]?
-}
-
-struct MessageResponse: Codable {
-    let id: String
-    let snippet: String?
-    let payload: PayloadResponse?
-}
-
-struct PayloadResponse: Codable {
-    let headers: [HeaderResponse]?
-}
-
 struct HeaderResponse: Codable {
     let name: String
     let value: String
@@ -65,16 +49,19 @@ struct FilterResponse: Codable {
 
 struct ThreadFullResponse: Codable {
     let id: String
+    let snippet: String?
     let messages: [MessageFullResponse]?
 }
 
 struct MessageFullResponse: Codable {
     let id: String
+    let snippet: String?
     let payload: PayloadFullResponse?
 }
 
 struct PayloadFullResponse: Codable {
     let mimeType: String?
+    let filename: String?
     let headers: [HeaderResponse]?
     let body: BodyResponse?
     let parts: [PayloadFullResponse]?
@@ -82,6 +69,7 @@ struct PayloadFullResponse: Codable {
 
 struct BodyResponse: Codable {
     let data: String?
+    let size: Int?
     let attachmentId: String?
 }
 
@@ -101,9 +89,15 @@ struct GmailLabel: Codable {
     let name: String
 }
 
+struct LabelColor: Codable {
+    let backgroundColor: String
+    let textColor: String
+}
+
 struct CreateLabelRequest: Codable {
     let name: String
     let labelListVisibility: String
     let messageListVisibility: String
+    let color: LabelColor?
 }
 

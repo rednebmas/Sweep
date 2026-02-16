@@ -132,8 +132,9 @@ extension GmailService {
 
         let body = CreateLabelRequest(
             name: "kept",
-            labelListVisibility: "labelHide",
-            messageListVisibility: "hide"
+            labelListVisibility: "labelShow",
+            messageListVisibility: "show",
+            color: LabelColor(backgroundColor: "#16a765", textColor: "#ffffff")
         )
         createRequest.httpBody = try JSONEncoder().encode(body)
 

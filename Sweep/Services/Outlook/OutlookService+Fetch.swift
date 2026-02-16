@@ -91,6 +91,50 @@ extension OutlookService {
         return body
     }
 
+    func fetchAttachments(_ messageId: String) async throws -> [EmailAttachment] {
+        if let cached = getCachedAttachments(messageId) {
+            return cached
+        }
+
+        guard isAuthenticated else {
+            throw OutlookError.notAuthenticated
+        }
+
+        let select = "id,name,contentType,size,isInline"
+        let url = URL(string: "\(baseURL)/messages/\(messageId)/attachments?$select=\(select)")!
+        let request = try await authorizedRequest(url)
+        let response: OutlookAttachmentListResponse = try await performRequest(request)
+
+        let attachments = (response.value ?? [])
+            .filter { !($0.isInline ?? false) && $0.name != nil }
+            .map { EmailAttachment(
+                id: $0.id,
+                messageId: messageId,
+                filename: $0.name!,
+                mimeType: $0.contentType ?? "application/octet-stream",
+                size: $0.size ?? 0
+            ) }
+
+        cacheAttachments(messageId, attachments: attachments)
+        return attachments
+    }
+
+    func downloadAttachmentData(_ attachment: EmailAttachment) async throws -> Data {
+        guard isAuthenticated else {
+            throw OutlookError.notAuthenticated
+        }
+
+        let url = URL(string: "\(baseURL)/messages/\(attachment.messageId)/attachments/\(attachment.id)?$select=contentBytes")!
+        let request = try await authorizedRequest(url)
+        let response: OutlookAttachment = try await performRequest(request)
+
+        guard let base64 = response.contentBytes,
+              let data = Data(base64Encoded: base64) else {
+            throw OutlookError.apiError("Failed to decode attachment data")
+        }
+        return data
+    }
+
     func prefetchBodies(for messageIds: [String]) {
         let count = min(messageIds.count, 5)
         Task.detached { [weak self] in

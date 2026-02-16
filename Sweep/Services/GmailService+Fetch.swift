@@ -44,10 +44,18 @@ extension GmailService {
         }
     }
 
+    private static let threadDetailFields = [
+        "id,snippet,messages(id,snippet,payload(headers,mimeType,filename,",
+        "body(attachmentId,size),parts(mimeType,filename,body(attachmentId,size),",
+        "headers,parts(mimeType,filename,body(attachmentId,size),headers,",
+        "parts(mimeType,filename,body(attachmentId,size),headers)))))"
+    ].joined()
+
     func fetchThreadDetail(_ threadId: String) async throws -> EmailThread? {
-        let url = URL(string: "\(baseURL)/threads/\(threadId)?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date&metadataHeaders=List-Unsubscribe")!
+        let fields = Self.threadDetailFields.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? Self.threadDetailFields
+        let url = URL(string: "\(baseURL)/threads/\(threadId)?format=full&fields=\(fields)")!
         let request = try await authorizedRequest(url)
-        let response: ThreadDetailResponse = try await performRequest(request)
+        let response: ThreadFullResponse = try await performRequest(request)
 
         guard let firstMessage = response.messages?.first else {
             return nil
@@ -56,7 +64,7 @@ extension GmailService {
         return parseThread(response, firstMessage: firstMessage)
     }
 
-    private func parseThread(_ response: ThreadDetailResponse, firstMessage: MessageResponse) -> EmailThread {
+    private func parseThread(_ response: ThreadFullResponse, firstMessage: MessageFullResponse) -> EmailThread {
         let headers = firstMessage.payload?.headers ?? []
 
         let fromHeader = headers.first { $0.name.lowercased() == "from" }?.value ?? "Unknown"
@@ -78,11 +86,27 @@ extension GmailService {
             from: fromName,
             fromEmail: fromEmail,
             timestamp: timestamp,
-            hasAttachments: false,
+            hasAttachments: detectAttachments(in: response),
             messageCount: response.messages?.count ?? 1,
             unsubscribeURL: unsubscribeURL,
             isKept: KeptThreadsStore.shared.isKept(response.id, accountId: accountId)
         )
+    }
+
+    private func detectAttachments(in response: ThreadFullResponse) -> Bool {
+        response.messages?.contains { hasFileAttachments($0.payload) } ?? false
+    }
+
+    private func hasFileAttachments(_ payload: PayloadFullResponse?) -> Bool {
+        guard let payload = payload else { return false }
+
+        if let filename = payload.filename, !filename.isEmpty,
+           payload.body?.attachmentId != nil,
+           !isInlineImage(payload) {
+            return true
+        }
+
+        return payload.parts?.contains { hasFileAttachments($0) } ?? false
     }
 
     private func parseUnsubscribeHeader(_ header: String?) -> URL? {

@@ -29,9 +29,16 @@ protocol EmailProviderProtocol: AnyObject {
     func restoreThreads(_ threadIds: [String], wasArchived: Bool) async throws
     func applyKeptLabel(_ threadIds: [String]) async throws
     func removeKeptLabel(_ threadIds: [String]) async throws
+
+    func fetchAttachments(_ threadId: String) async throws -> [EmailAttachment]
+    func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data
 }
 
 extension EmailProviderProtocol {
     func applyKeptLabel(_ threadIds: [String]) async throws {}
     func removeKeptLabel(_ threadIds: [String]) async throws {}
+    func fetchAttachments(_ threadId: String) async throws -> [EmailAttachment] { [] }
+    func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data {
+        throw EmailError.providerNotFound
+    }
 }

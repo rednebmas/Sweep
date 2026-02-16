@@ -81,6 +81,8 @@ extension GmailService {
             }
         }
 
+        let fileAttachments = messages.flatMap { collectFileAttachments(from: $0.payload, messageId: $0.id) }
+        cacheAttachments(threadId, attachments: fileAttachments)
         cacheBody(threadId, body: html)
         return html
     }
@@ -96,9 +98,9 @@ extension GmailService {
 
         var attachments: [PendingAttachment] = []
 
-        if let contentId = extractContentId(from: payload.headers),
+        if isInlineImage(payload),
+           let contentId = extractContentId(from: payload.headers),
            let mimeType = payload.mimeType,
-           mimeType.hasPrefix("image/"),
            let attachmentId = payload.body?.attachmentId {
             attachments.append(PendingAttachment(
                 contentId: contentId,
@@ -114,6 +116,43 @@ extension GmailService {
         }
 
         return attachments
+    }
+
+    private func collectFileAttachments(from payload: PayloadFullResponse?, messageId: String) -> [EmailAttachment] {
+        guard let payload = payload else { return [] }
+
+        var attachments: [EmailAttachment] = []
+
+        if let filename = payload.filename, !filename.isEmpty,
+           let attachmentId = payload.body?.attachmentId,
+           !isInlineImage(payload) {
+            attachments.append(EmailAttachment(
+                id: attachmentId,
+                messageId: messageId,
+                filename: filename,
+                mimeType: payload.mimeType ?? "application/octet-stream",
+                size: payload.body?.size ?? 0
+            ))
+        }
+
+        if let parts = payload.parts {
+            for part in parts {
+                attachments.append(contentsOf: collectFileAttachments(from: part, messageId: messageId))
+            }
+        }
+
+        return attachments
+    }
+
+    func downloadAttachmentData(_ attachment: EmailAttachment) async throws -> Data {
+        let base64String = try await fetchAttachmentData(
+            messageId: attachment.messageId,
+            attachmentId: attachment.id
+        )
+        guard let data = Data(base64Encoded: base64String) else {
+            throw GmailError.invalidResponse
+        }
+        return data
     }
 
     private func fetchAttachmentData(messageId: String, attachmentId: String) async throws -> String {

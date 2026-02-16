@@ -94,6 +94,20 @@ class UnifiedInboxService: ObservableObject {
         }
     }
 
+    func fetchAttachments(for thread: EmailThread) async throws -> [EmailAttachment] {
+        guard let provider = accountManager.provider(for: thread.accountId) else {
+            throw EmailError.providerNotFound
+        }
+        return try await provider.fetchAttachments(thread.id)
+    }
+
+    func downloadAttachment(_ attachment: EmailAttachment, for thread: EmailThread) async throws -> Data {
+        guard let provider = accountManager.provider(for: thread.accountId) else {
+            throw EmailError.providerNotFound
+        }
+        return try await provider.downloadAttachment(attachment)
+    }
+
     func fetchEmailBody(for thread: EmailThread) async throws -> String {
         guard let provider = accountManager.provider(for: thread.accountId) else {
             throw EmailError.providerNotFound
