@@ -63,6 +63,44 @@ class KeptThreadsStore: ObservableObject {
         updateCount()
     }
 
+    func addKept(_ thread: EmailThread) {
+        guard let context = modelContext else { return }
+        guard !isKept(thread.id, accountId: thread.accountId) else { return }
+        let keptThread = KeptThread(thread: thread)
+        context.insert(keptThread)
+        try? context.save()
+        updateCount()
+    }
+
+    func updateCachedData(for thread: EmailThread) {
+        guard let context = modelContext else { return }
+        let compositeId = thread.compositeId
+        let descriptor = FetchDescriptor<KeptThread>(
+            predicate: #Predicate { $0.compositeId == compositeId }
+        )
+        guard let kept = try? context.fetch(descriptor).first else { return }
+        kept.updateCachedData(from: thread)
+        try? context.save()
+    }
+
+    func cachedKeptThreads() -> [EmailThread] {
+        guard let context = modelContext else { return [] }
+        let descriptor = FetchDescriptor<KeptThread>(
+            sortBy: [SortDescriptor(\.keptAt, order: .reverse)]
+        )
+        guard let keptThreads = try? context.fetch(descriptor) else { return [] }
+        return keptThreads.filter(\.hasCachedData).map { $0.toEmailThread() }
+    }
+
+    func uncachedKeptEntries() -> [(threadId: String, accountId: String)] {
+        guard let context = modelContext else { return [] }
+        let descriptor = FetchDescriptor<KeptThread>()
+        guard let keptThreads = try? context.fetch(descriptor) else { return [] }
+        return keptThreads
+            .filter { !$0.hasCachedData }
+            .map { (threadId: $0.threadId, accountId: $0.accountId) }
+    }
+
     func removeKept(_ threadId: String, accountId: String) {
         guard let context = modelContext else { return }
         let compositeId = "\(accountId):\(threadId)"

@@ -57,6 +57,7 @@ export function sendNotification(deviceToken: string, title: string, body: strin
       aps: {
         alert: { title, body },
         badge,
+        'content-available': 1,
         'mutable-content': 1,
         'interruption-level': 'passive',
         category: 'NEW_EMAIL'

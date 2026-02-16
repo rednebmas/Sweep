@@ -32,4 +32,19 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) {
         print("Failed to register for remote notifications: \(error)")
     }
+
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        Task {
+            do {
+                let threads = try await ThreadCache.shared.fetchThreads()
+                completionHandler(threads.isEmpty ? .noData : .newData)
+            } catch {
+                completionHandler(.failed)
+            }
+        }
+    }
 }

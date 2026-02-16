@@ -22,23 +22,29 @@ class EmailListViewModel: ObservableObject {
     private let keptStore = KeptThreadsStore.shared
 
     func loadThreads() async {
-        isLoading = true
         error = nil
-        defer { isLoading = false }
 
         if MockDataProvider.isEnabled {
+            isLoading = true
+            defer { isLoading = false }
             threads = MockDataProvider.mockThreads()
             return
         }
 
-        await accountManager.restoreAllAccounts()
+        if let cached = await ThreadCache.shared.awaitIfInFlight() {
+            threads = cached
+            inboxService.prefetchBodies(for: threads)
+            refreshKeptCache()
+            return
+        }
 
-        guard accountManager.hasAnyAccount else { return }
+        isLoading = true
+        defer { isLoading = false }
 
         do {
-            let fetchDate = appState.getEmailFetchDate()
-            threads = try await inboxService.fetchAllThreads(since: fetchDate)
+            threads = try await BackgroundFetchService.fetchThreads()
             inboxService.prefetchBodies(for: threads)
+            refreshKeptCache()
         } catch {
             self.error = error
         }
@@ -78,7 +84,7 @@ class EmailListViewModel: ObservableObject {
         threads[index].isKept.toggle()
 
         if threads[index].isKept {
-            keptStore.addKept(thread.id, accountId: thread.accountId)
+            keptStore.addKept(threads[index])
             Task { try? await inboxService.applyKeptLabel([thread]) }
         } else {
             keptStore.removeKept(thread.id, accountId: thread.accountId)
@@ -138,5 +144,11 @@ class EmailListViewModel: ObservableObject {
         guard let url = thread.unsubscribeURL else { return }
         isBrowserOpen = true
         UIApplication.shared.open(url)
+    }
+
+    private func refreshKeptCache() {
+        for thread in threads where thread.isKept {
+            keptStore.updateCachedData(for: thread)
+        }
     }
 }

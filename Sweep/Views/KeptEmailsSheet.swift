@@ -80,18 +80,18 @@ struct KeptEmailsSheet: View {
     }
 
     private func loadKeptThreads() async {
-        var loadedThreads: [EmailThread] = []
+        let keptStore = KeptThreadsStore.shared
+        var loadedThreads = keptStore.cachedKeptThreads()
 
-        for account in accountManager.accounts {
-            guard let provider = accountManager.provider(for: account.id) else { continue }
-            let keptIds = KeptThreadsStore.shared.keptThreadIds(for: account.id)
-
-            for threadId in keptIds {
-                if let thread = try? await provider.fetchThreadDetail(threadId) {
-                    var keptThread = thread
-                    keptThread.isKept = true
-                    loadedThreads.append(keptThread)
-                }
+        // Backfill legacy entries that have no cached data
+        let uncached = keptStore.uncachedKeptEntries()
+        for entry in uncached {
+            guard let provider = accountManager.provider(for: entry.accountId) else { continue }
+            if let thread = try? await provider.fetchThreadDetail(entry.threadId) {
+                var keptThread = thread
+                keptThread.isKept = true
+                keptStore.updateCachedData(for: keptThread)
+                loadedThreads.append(keptThread)
             }
         }
 

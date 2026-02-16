@@ -3,7 +3,6 @@
 //  Sweep
 
 import UserNotifications
-import UIKit
 
 class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationDelegate()
@@ -39,16 +38,14 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
     @MainActor
     private func handleMarkAllRead() async {
-        let fetchDate = AppState.shared.getEmailFetchDate()
-
         do {
-            let threads = try await UnifiedInboxService.shared.fetchAllThreads(since: fetchDate)
+            let threads = try await BackgroundFetchService.fetchThreads()
             if !threads.isEmpty {
                 try await UnifiedInboxService.shared.markAsRead(threads)
             }
             let newestDate = threads.map(\.timestamp).max() ?? Date()
             AppState.shared.updateEmailFetchTimestamp(newestEmailDate: newestDate)
-            UIApplication.shared.applicationIconBadgeNumber = 0
+            try? await UNUserNotificationCenter.current().setBadgeCount(0)
             NotificationService.shared.clearNewEmailNotifications()
         } catch {
             print("Failed to mark all as read: \(error)")
