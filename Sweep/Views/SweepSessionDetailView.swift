@@ -6,7 +6,7 @@
 import SwiftUI
 
 struct SweepSessionDetailView: View {
-    let session: ArchiveSession
+    @State var session: ArchiveSession
     let onRestore: () -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -41,9 +41,9 @@ struct SweepSessionDetailView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 if session.wasArchived {
-                    Text("This will move \(session.count) emails back to your inbox.")
+                    Text("This will move \(threads.count) emails back to your inbox.")
                 } else {
-                    Text("This will mark \(session.count) emails as unread.")
+                    Text("This will mark \(threads.count) emails as unread.")
                 }
             }
             .task {
@@ -83,6 +83,14 @@ struct SweepSessionDetailView: View {
                     ForEach(threads) { thread in
                         EmailRowView(thread: thread, snippetLines: appState.snippetLines, showAccountIndicator: accountManager.hasMultipleAccounts)
                             .listRowInsets(EdgeInsets())
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button {
+                                    keepThread(thread)
+                                } label: {
+                                    Label("Keep", systemImage: "checkmark")
+                                }
+                                .tint(.green)
+                            }
                     }
                 }
                 .listStyle(.plain)
@@ -104,6 +112,27 @@ struct SweepSessionDetailView: View {
 
         threads = loadedThreads.sorted { $0.timestamp > $1.timestamp }
         isLoading = false
+    }
+
+    private func keepThread(_ thread: EmailThread) {
+        threads.removeAll { $0.compositeId == thread.compositeId }
+
+        if let updated = session.removing(Set([thread.compositeId])) {
+            session = updated
+            appState.updateSession(updated)
+        } else {
+            appState.clearArchiveSession(session)
+            dismiss()
+        }
+
+        var kept = thread
+        kept.isKept = true
+        KeptThreadsStore.shared.addKept(kept)
+
+        Task {
+            try? await UnifiedInboxService.shared.restoreThreads([thread], wasArchived: session.wasArchived)
+            try? await UnifiedInboxService.shared.applyKeptLabel([thread])
+        }
     }
 
     private func restoreSession() async {

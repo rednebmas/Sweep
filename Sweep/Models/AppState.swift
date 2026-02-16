@@ -83,6 +83,11 @@ class AppState: ObservableObject {
         return sessions
     }
 
+    func updateSession(_ session: ArchiveSession) {
+        guard let index = archiveSessions.firstIndex(where: { $0.id == session.id }) else { return }
+        archiveSessions[index] = session
+    }
+
     func clearArchiveSession(_ session: ArchiveSession) {
         archiveSessions.removeAll { $0.id == session.id }
     }

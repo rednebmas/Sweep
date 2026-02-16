@@ -20,6 +20,20 @@ struct SweepSession: Identifiable, Codable {
         self.wasArchived = wasArchived
     }
 
+    private init(id: UUID, timestamp: Date, compositeIds: [String], count: Int, wasArchived: Bool) {
+        self.id = id
+        self.timestamp = timestamp
+        self.compositeIds = compositeIds
+        self.count = count
+        self.wasArchived = wasArchived
+    }
+
+    func removing(_ idsToRemove: Set<String>) -> SweepSession? {
+        let remaining = compositeIds.filter { !idsToRemove.contains($0) }
+        guard !remaining.isEmpty else { return nil }
+        return SweepSession(id: id, timestamp: timestamp, compositeIds: remaining, count: remaining.count, wasArchived: wasArchived)
+    }
+
     func threadsByAccount() -> [String: [String]] {
         var result: [String: [String]] = [:]
         for compositeId in compositeIds {
