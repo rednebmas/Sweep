@@ -57,13 +57,17 @@ functions.cloudEvent('onGmailNotification', async (event: functions.CloudEvent<{
     return;
   }
 
-  for (const messageId of messageIds) {
-    const metadata = await getGmailMetadata(user.refreshToken, messageId);
-    await addPendingEmail(emailAddress, 'gmail', metadata);
-  }
-
   if (latestHistoryId) {
     await setUser(emailAddress, 'gmail', { historyId: latestHistoryId });
+  }
+
+  for (const messageId of messageIds) {
+    try {
+      const metadata = await getGmailMetadata(user.refreshToken, messageId);
+      await addPendingEmail(emailAddress, 'gmail', metadata);
+    } catch (error) {
+      console.log(`Skipping message ${messageId}: ${error}`);
+    }
   }
 
   const pendingEmails = await getPendingEmails(emailAddress, 'gmail');
