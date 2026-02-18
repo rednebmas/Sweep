@@ -133,6 +133,9 @@ extension GmailService {
     func parseDateHeader(_ dateString: String?) -> Date {
         guard let dateString = dateString else { return Date() }
 
+        let cleaned = dateString.replacingOccurrences(
+            of: "\\s*\\([^)]*\\)\\s*$", with: "", options: .regularExpression)
+
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
 
@@ -144,7 +147,7 @@ extension GmailService {
 
         for format in formats {
             formatter.dateFormat = format
-            if let date = formatter.date(from: dateString) {
+            if let date = formatter.date(from: cleaned) {
                 return date
             }
         }
