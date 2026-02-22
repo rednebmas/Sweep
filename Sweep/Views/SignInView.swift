@@ -8,6 +8,7 @@ import SwiftUI
 struct SignInView: View {
     @ObservedObject private var accountManager = AccountManager.shared
     @State private var isSigningIn = false
+    @State private var showIMAPSheet = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -52,6 +53,17 @@ struct SignInView: View {
                 }
                 .disabled(isSigningIn)
 
+                Button {
+                    showIMAPSheet = true
+                } label: {
+                    Text("Other email (IMAP)")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color(.systemGray5))
+                        .foregroundColor(.primary)
+                        .cornerRadius(12)
+                }
+
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
                         .font(.caption)
@@ -60,6 +72,9 @@ struct SignInView: View {
                 }
             }
             .padding(.horizontal, 32)
+            .sheet(isPresented: $showIMAPSheet) {
+                IMAPSignInSheet()
+            }
 
             Spacer()
         }

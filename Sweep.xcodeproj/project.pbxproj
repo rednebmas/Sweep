@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		221A04042F12CEB600A01BDD /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 221A04032F12CEB600A01BDD /* GoogleSignInSwift */; };
 		221A04062F12CEBF00A01BDD /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 221A04052F12CEBF00A01BDD /* GoogleSignIn */; };
+		22C029D52F45891E00FA6687 /* SwiftMail in Frameworks */ = {isa = PBXBuildFile; productRef = 22C029D42F45891E00FA6687 /* SwiftMail */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +73,7 @@
 			files = (
 				221A04042F12CEB600A01BDD /* GoogleSignInSwift in Frameworks */,
 				221A04062F12CEBF00A01BDD /* GoogleSignIn in Frameworks */,
+				22C029D52F45891E00FA6687 /* SwiftMail in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,6 +144,7 @@
 			packageProductDependencies = (
 				221A04032F12CEB600A01BDD /* GoogleSignInSwift */,
 				221A04052F12CEBF00A01BDD /* GoogleSignIn */,
+				22C029D42F45891E00FA6687 /* SwiftMail */,
 			);
 			productName = Sweep;
 			productReference = 221A03BB2F12C7E800A01BDD /* Sweep.app */;
@@ -227,6 +230,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				221A03FF2F12CD4C00A01BDD /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				22C029D32F45888800FA6687 /* XCRemoteSwiftPackageReference "SwiftMail" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 221A03BC2F12C7E800A01BDD /* Products */;
@@ -430,7 +434,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Sweep/Sweep.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 2VJY2AJVXJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -465,7 +469,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Sweep/Sweep.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 2VJY2AJVXJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -498,7 +502,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 2VJY2AJVXJ;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -520,7 +524,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 2VJY2AJVXJ;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -541,7 +545,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 2VJY2AJVXJ;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
@@ -561,7 +565,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 2VJY2AJVXJ;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
@@ -627,6 +631,14 @@
 				minimumVersion = 9.1.0;
 			};
 		};
+		22C029D32F45888800FA6687 /* XCRemoteSwiftPackageReference "SwiftMail" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Cocoanetics/SwiftMail";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -639,6 +651,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 221A03FF2F12CD4C00A01BDD /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
+		};
+		22C029D42F45891E00FA6687 /* SwiftMail */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 22C029D32F45888800FA6687 /* XCRemoteSwiftPackageReference "SwiftMail" */;
+			productName = SwiftMail;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -13,7 +13,7 @@ export interface EmailData {
   timestamp: Date;
 }
 
-export type Provider = 'gmail' | 'outlook';
+export type Provider = 'gmail' | 'outlook' | 'imap';
 
 export interface UserData {
   deviceToken: string;
@@ -27,6 +27,11 @@ export interface UserData {
   msRefreshToken?: string;
   subscriptionId?: string;
   subscriptionExpiry?: Date;
+  // IMAP-specific
+  imapPasswordEncrypted?: string;
+  imapHost?: string;
+  imapPort?: number;
+  lastPollUid?: number;
 }
 
 function toDate(value: Date | Timestamp): Date {
@@ -129,6 +134,17 @@ export async function getUserBySubscriptionId(subscriptionId: string): Promise<{
   const key = doc.id;
   const email = key.replace(/_outlook$/, '');
   return { email, userData: doc.data() as UserData };
+}
+
+export async function getIMAPUsers(): Promise<Array<{ email: string } & UserData>> {
+  const snapshot = await usersCollection
+    .where('provider', '==', 'imap')
+    .get();
+  return snapshot.docs.map(doc => {
+    const key = doc.id;
+    const email = key.replace(/_imap$/, '');
+    return { email, ...parseUserData(doc.data()) };
+  });
 }
 
 export async function getUsersWithExpiringSubscription(hoursUntilExpiry: number): Promise<Array<{ email: string } & UserData>> {

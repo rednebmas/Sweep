@@ -48,6 +48,10 @@ class AccountManager: ObservableObject {
         try await addAccount(provider: OutlookProvider())
     }
 
+    func addIMAPAccount(credentials: IMAPCredentials) async throws {
+        try await addAccount(provider: IMAPProvider(credentials: credentials))
+    }
+
     private func addAccount(provider: any EmailProviderProtocol) async throws {
         try await provider.signIn()
 
@@ -98,9 +102,14 @@ class AccountManager: ObservableObject {
     }
 
     private func restoreProvider(for account: EmailAccount) async {
-        let provider: any EmailProviderProtocol = account.providerType == .gmail
-            ? GmailProvider()
-            : OutlookProvider()
+        let provider: any EmailProviderProtocol
+        switch account.providerType {
+        case .gmail: provider = GmailProvider()
+        case .outlook: provider = OutlookProvider()
+        case .imap:
+            guard let credentials = IMAPKeychain.load(email: account.email) else { return }
+            provider = IMAPProvider(credentials: credentials)
+        }
         if await provider.restorePreviousSignIn() {
             providers[account.id] = provider
         }

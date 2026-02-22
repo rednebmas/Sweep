@@ -8,6 +8,7 @@ struct AddAccountSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var accountManager = AccountManager.shared
     @State private var isAddingGmail = false
+    @State private var showIMAPSheet = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -25,6 +26,17 @@ struct AddAccountSheet: View {
                     .disabled(isAddingGmail)
                 }
 
+                Section {
+                    Button {
+                        showIMAPSheet = true
+                    } label: {
+                        providerRow(
+                            type: .imap,
+                            isLoading: false
+                        )
+                    }
+                }
+
                 if let error = errorMessage {
                     Section {
                         Text(error)
@@ -40,6 +52,9 @@ struct AddAccountSheet: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+        }
+        .sheet(isPresented: $showIMAPSheet) {
+            IMAPSignInSheet()
         }
     }
 

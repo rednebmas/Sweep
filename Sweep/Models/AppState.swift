@@ -37,6 +37,12 @@ class AppState: ObservableObject {
         }
     }
 
+    @Published var manualSweep: Bool {
+        didSet {
+            UserDefaults.standard.set(manualSweep, forKey: "manualSweep")
+        }
+    }
+
     private init() {
         let savedTimestamp = UserDefaults.standard.object(forKey: "lastOpenedTimestamp") as? Date
         self.lastOpenedTimestamp = savedTimestamp
@@ -44,6 +50,7 @@ class AppState: ObservableObject {
         self.archiveSessions = Self.loadArchiveSessions()
         self.snippetLines = UserDefaults.standard.object(forKey: "snippetLines") as? Int ?? 3
         self.archiveOnBackground = UserDefaults.standard.bool(forKey: "archiveOnBackground")
+        self.manualSweep = UserDefaults.standard.bool(forKey: "manualSweep")
     }
 
     func updateEmailFetchTimestamp(newestEmailDate: Date) {

@@ -1,7 +1,9 @@
 import * as functions from '@google-cloud/functions-framework';
-import { getUser, setUser, addPendingEmail, clearPendingEmails, getPendingEmails, getUserBySubscriptionId, Provider } from './firestore';
+import { getUser, setUser, addPendingEmail, clearPendingEmails, getPendingEmails, getUserBySubscriptionId, getIMAPUsers, Provider } from './firestore';
 import { setupWatch, getEmailMetadata as getGmailMetadata, getNewMessages, exchangeAuthCode } from './gmail';
 import { exchangeMsAuthCode, createMailSubscription, renewSubscription, refreshMsToken, getMessageMetadata as getOutlookMetadata } from './outlook';
+import { pollNewMessages } from './imap';
+import { encrypt, decrypt } from './kms';
 import { sendNotification } from './apns';
 import { formatNotification } from './notifications';
 
@@ -156,22 +158,29 @@ functions.http('onOutlookNotification', async (req: functions.Request, res: func
 interface RegisterDeviceBody {
   email: string;
   deviceToken: string;
-  authCode: string;
+  authCode?: string;
   provider: Provider;
+  // IMAP-specific
+  password?: string;
+  host?: string;
+  port?: string;
 }
 
 functions.http('registerDevice', async (req: functions.Request, res: functions.Response) => {
   if (!validateRequest(req, res)) return;
 
-  const { email, deviceToken, authCode, provider } = req.body as RegisterDeviceBody;
+  const { email, deviceToken, provider } = req.body as RegisterDeviceBody;
 
-  if (!email || !deviceToken || !authCode || !provider) {
+  if (!email || !deviceToken || !provider) {
     res.status(400).send('Missing required fields');
     return;
   }
 
   try {
     if (provider === 'gmail') {
+      const { authCode } = req.body as RegisterDeviceBody;
+      if (!authCode) { res.status(400).send('Missing authCode'); return; }
+
       const refreshToken = await exchangeAuthCode(authCode);
       const watchResult = await setupWatch(refreshToken);
 
@@ -189,6 +198,9 @@ functions.http('registerDevice', async (req: functions.Request, res: functions.R
         watchExpiry: watchResult.expiration.toISOString()
       });
     } else if (provider === 'outlook') {
+      const { authCode } = req.body as RegisterDeviceBody;
+      if (!authCode) { res.status(400).send('Missing authCode'); return; }
+
       const { accessToken, refreshToken } = await exchangeMsAuthCode(authCode);
       const subscription = await createMailSubscription(accessToken);
 
@@ -205,6 +217,22 @@ functions.http('registerDevice', async (req: functions.Request, res: functions.R
         provider: 'outlook',
         subscriptionExpiry: subscription.expiration.toISOString()
       });
+    } else if (provider === 'imap') {
+      const { password, host, port } = req.body as RegisterDeviceBody;
+      if (!password || !host) { res.status(400).send('Missing IMAP credentials'); return; }
+
+      const encryptedPassword = await encrypt(password);
+
+      await setUser(email, 'imap', {
+        deviceToken,
+        imapPasswordEncrypted: encryptedPassword,
+        imapHost: host,
+        imapPort: parseInt(port || '993', 10),
+        lastPollUid: 0,
+        pendingEmails: []
+      });
+
+      res.json({ success: true, provider: 'imap' });
     } else {
       res.status(400).send('Invalid provider');
     }
@@ -296,4 +324,47 @@ functions.http('appOpened', async (req: functions.Request, res: functions.Respon
     console.error('App opened error:', error);
     res.json({ success: true, error: 'Renewal failed' });
   }
+});
+
+functions.http('pollIMAPAccounts', async (req: functions.Request, res: functions.Response) => {
+  if (!validateRequest(req, res)) return;
+
+  const imapUsers = await getIMAPUsers();
+  let polled = 0;
+  let notified = 0;
+
+  for (const user of imapUsers) {
+    if (!user.imapPasswordEncrypted || !user.imapHost) continue;
+
+    try {
+      const password = await decrypt(user.imapPasswordEncrypted);
+      const { emails, latestUid } = await pollNewMessages(
+        { host: user.imapHost, port: user.imapPort || 993, email: user.email, password },
+        user.lastPollUid || 0
+      );
+
+      polled++;
+
+      if (latestUid > (user.lastPollUid || 0)) {
+        await setUser(user.email, 'imap', { lastPollUid: latestUid });
+      }
+
+      if (emails.length === 0) continue;
+
+      for (const emailData of emails) {
+        await addPendingEmail(user.email, 'imap', emailData);
+      }
+
+      const pendingEmails = await getPendingEmails(user.email, 'imap');
+      const { title, body } = formatNotification(pendingEmails);
+      await sendNotification(user.deviceToken, title, body, pendingEmails.length);
+      notified++;
+
+      console.log(`IMAP poll for ${user.email}: ${emails.length} new, ${pendingEmails.length} pending`);
+    } catch (error) {
+      console.error(`IMAP poll error for ${user.email}:`, error);
+    }
+  }
+
+  res.json({ success: true, polled, notified });
 });

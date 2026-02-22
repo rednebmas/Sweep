@@ -12,7 +12,9 @@
   "dependencies": {
     "@google-cloud/firestore": "^7.0.0",
     "@google-cloud/functions-framework": "^3.0.0",
-    "googleapis": "^130.0.0"
+    "@google-cloud/kms": "^4.0.0",
+    "googleapis": "^130.0.0",
+    "imapflow": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -63,7 +63,7 @@ struct SweepApp: App {
         }
         .modelContainer(modelContainer)
         .onChange(of: scenePhase) {
-            if scenePhase == .background {
+            if scenePhase == .background, !AppState.shared.manualSweep {
                 let app = UIApplication.shared
                 var backgroundTaskId: UIBackgroundTaskIdentifier = .invalid
                 backgroundTaskId = app.beginBackgroundTask {

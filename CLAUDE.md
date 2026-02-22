@@ -8,6 +8,9 @@ Email inbox management app. Swipe to keep, archive the rest. See `~/code/brain/p
 # Build
 xcodebuild -scheme Sweep -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' build
 
+# TestFlight beta build (uses ASC API key from env — no 2FA needed)
+source ~/.zshrc && fastlane beta
+
 # DRY check
 npx jscpd . --ignore "**/*.xcodeproj/**,**/Assets.xcassets/**"
 

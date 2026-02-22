@@ -82,6 +82,15 @@ class NotificationService {
                     deviceToken: token,
                     authCode: authCode
                 )
+            case .imap:
+                guard let credentials = IMAPKeychain.load(email: account.email) else { continue }
+                await PushAPIClient.shared.registerIMAPDevice(
+                    email: account.email,
+                    deviceToken: token,
+                    password: credentials.password,
+                    host: credentials.host,
+                    port: credentials.port
+                )
             }
         }
     }
@@ -91,8 +100,7 @@ class NotificationService {
         clearNewEmailNotifications()
         try? await UNUserNotificationCenter.current().setBadgeCount(0)
         for account in AccountManager.shared.enabledAccounts {
-            let provider = account.providerType == .gmail ? "gmail" : "outlook"
-            await PushAPIClient.shared.appOpened(email: account.email, provider: provider)
+            await PushAPIClient.shared.appOpened(email: account.email, provider: account.providerType.rawValue)
         }
     }
 

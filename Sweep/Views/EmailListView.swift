@@ -166,8 +166,28 @@ struct EmailListView: View {
                     selectedThread = thread
                 }
             }
+            if appState.manualSweep && !viewModel.threads.isEmpty {
+                sweepButton
+            }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+    }
+
+    private var sweepButton: some View {
+        Button {
+            Task { await viewModel.processNonKeptThreads() }
+        } label: {
+            Text("Sweep")
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Color(hex: 0x2a2a2a))
+                .cornerRadius(12)
+        }
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+        .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
     }
 }

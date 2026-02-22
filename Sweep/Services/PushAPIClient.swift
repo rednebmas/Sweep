@@ -48,6 +48,20 @@ class PushAPIClient {
         }
     }
 
+    func registerIMAPDevice(email: String, deviceToken: String, password: String, host: String, port: UInt32) async {
+        let body = [
+            "email": email,
+            "deviceToken": deviceToken,
+            "password": password,
+            "host": host,
+            "port": String(port),
+            "provider": "imap"
+        ]
+        if await post("registerDevice", body: body) {
+            print("IMAP device registered for push notifications")
+        }
+    }
+
     func appOpened(email: String, provider: String) async {
         if await post("appOpened", body: ["email": email, "provider": provider]) {
             print("App opened notification sent for \(provider)")

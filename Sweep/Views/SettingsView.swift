@@ -63,6 +63,10 @@ struct SettingsView: View {
             Text("When disabled, emails are only marked as read. When enabled, non-kept emails are also archived.")
                 .font(.caption)
                 .foregroundColor(.secondary)
+            Toggle("Manual sweep", isOn: $appState.manualSweep)
+            Text("When enabled, emails are only swept when you tap the Sweep button instead of automatically when the app backgrounds.")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
 

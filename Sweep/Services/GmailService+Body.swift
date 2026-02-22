@@ -64,27 +64,71 @@ extension GmailService {
         let request = try await authorizedRequest(url)
         let response: ThreadFullResponse = try await performRequest(request)
 
-        guard let messages = response.messages, let firstMessage = messages.first else {
+        guard let messages = response.messages, !messages.isEmpty else {
             return ""
         }
 
-        var html = extractHTMLBody(from: firstMessage.payload)
-        let pendingAttachments = collectPendingAttachments(from: firstMessage.payload)
-
-        for attachment in pendingAttachments {
-            if let data = try? await fetchAttachmentData(
-                messageId: firstMessage.id,
-                attachmentId: attachment.attachmentId
-            ) {
-                let dataURL = "data:\(attachment.mimeType);base64,\(data)"
-                html = html.replacingOccurrences(of: "cid:\(attachment.contentId)", with: dataURL)
+        let html: String
+        if messages.count == 1 {
+            html = await buildMessageBody(messages[0])
+        } else {
+            let divider = "<hr style=\"border:none;border-top:1px solid #38383a;margin:16px 0;\">"
+            var parts: [String] = []
+            for message in messages {
+                let header = buildMessageHeader(message)
+                let body = await buildMessageBody(message)
+                parts.append(header + body)
             }
+            html = parts.joined(separator: divider)
         }
 
         let fileAttachments = messages.flatMap { collectFileAttachments(from: $0.payload, messageId: $0.id) }
         cacheAttachments(threadId, attachments: fileAttachments)
         cacheBody(threadId, body: html)
         return html
+    }
+
+    private func buildMessageBody(_ message: MessageFullResponse) async -> String {
+        var body = extractHTMLBody(from: message.payload)
+        for attachment in collectPendingAttachments(from: message.payload) {
+            if let data = try? await fetchAttachmentData(
+                messageId: message.id,
+                attachmentId: attachment.attachmentId
+            ) {
+                body = body.replacingOccurrences(
+                    of: "cid:\(attachment.contentId)",
+                    with: "data:\(attachment.mimeType);base64,\(data)"
+                )
+            }
+        }
+        return body
+    }
+
+    private func buildMessageHeader(_ message: MessageFullResponse) -> String {
+        let headers = message.payload?.headers
+        let fromRaw = headers?.first { $0.name.lowercased() == "from" }?.value ?? ""
+        let dateRaw = headers?.first { $0.name.lowercased() == "date" }?.value
+        let (name, _) = parseFromHeader(fromRaw)
+        let date = parseDateHeader(dateRaw)
+        let dateString = formatMessageDate(date)
+        let escapedName = name
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+        return "<div style=\"margin-bottom:4px;padding:8px 0 4px;color:#8e8e93;font-size:13px;\"><strong style=\"color:#fff;\">\(escapedName)</strong> · \(dateString)</div>"
+    }
+
+    private func formatMessageDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        if Calendar.current.isDateInToday(date) {
+            formatter.dateFormat = "h:mm a"
+        } else if Calendar.current.isDate(date, equalTo: Date(), toGranularity: .year) {
+            formatter.dateFormat = "MMM d, h:mm a"
+        } else {
+            formatter.dateFormat = "MMM d, yyyy, h:mm a"
+        }
+        return formatter.string(from: date)
     }
 
     private struct PendingAttachment {
