@@ -31,7 +31,7 @@ class AuthService: ObservableObject {
     func restorePreviousSignIn() async -> Bool {
         await withCheckedContinuation { continuation in
             GIDSignIn.sharedInstance.restorePreviousSignIn { [weak self] user, error in
-                Task { @MainActor in
+                Task { @MainActor [weak self] in
                     if let user = user {
                         self?.handleSignInSuccess(user)
                         self?.isLoading = false
@@ -74,7 +74,7 @@ class AuthService: ObservableObject {
                 hint: nil,
                 additionalScopes: scopes
             ) { [weak self] result, error in
-                Task { @MainActor in
+                Task { @MainActor [weak self] in
                     if let error = error {
                         continuation.resume(throwing: error)
                         return
@@ -106,7 +106,7 @@ class AuthService: ObservableObject {
 
         return try await withCheckedThrowingContinuation { continuation in
             user.refreshTokensIfNeeded { [weak self] user, error in
-                Task { @MainActor in
+                Task { @MainActor [weak self] in
                     if let error = error {
                         continuation.resume(throwing: error)
                     } else {

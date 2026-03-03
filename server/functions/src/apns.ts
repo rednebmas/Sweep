@@ -1,9 +1,8 @@
 import * as http2 from 'http2';
 import * as crypto from 'crypto';
 
-const APNS_HOST = process.env.APNS_SANDBOX === 'true'
-  ? 'api.sandbox.push.apple.com'
-  : 'api.push.apple.com';
+const APNS_HOST_PROD = 'api.push.apple.com';
+const APNS_HOST_SANDBOX = 'api.sandbox.push.apple.com';
 const TEAM_ID = process.env.APNS_TEAM_ID!;
 const KEY_ID = process.env.APNS_KEY_ID!;
 const BUNDLE_ID = 'com.sambender.Sweep';
@@ -48,7 +47,7 @@ export interface APNsResult {
   error?: string;
 }
 
-export function sendNotification(deviceToken: string, title: string, body: string, badge: number): Promise<APNsResult> {
+export function sendNotification(deviceToken: string, title: string, body: string, badge: number, sandbox?: boolean): Promise<APNsResult> {
   return new Promise((resolve, reject) => {
     const jwt = generateJWT();
     const path = `/3/device/${deviceToken}`;
@@ -64,7 +63,8 @@ export function sendNotification(deviceToken: string, title: string, body: strin
       }
     });
 
-    const client = http2.connect(`https://${APNS_HOST}`);
+    const host = sandbox ? APNS_HOST_SANDBOX : APNS_HOST_PROD;
+    const client = http2.connect(`https://${host}`);
 
     client.on('error', reject);
 

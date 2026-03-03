@@ -10,10 +10,16 @@ class PushAPIClient {
 
     private let baseURL: String
     private let apiKey: String
+    private let apnsSandbox: String
 
     private init() {
         baseURL = Bundle.main.infoDictionary?["PUSH_API_BASE_URL"] as? String ?? ""
         apiKey = Bundle.main.infoDictionary?["PUSH_API_KEY"] as? String ?? ""
+        #if DEBUG
+        apnsSandbox = "true"
+        #else
+        apnsSandbox = "false"
+        #endif
     }
 
     private func post(_ endpoint: String, body: [String: String]) async -> Bool {
@@ -35,14 +41,14 @@ class PushAPIClient {
     }
 
     func registerGmailDevice(email: String, deviceToken: String, authCode: String) async {
-        let body = ["email": email, "deviceToken": deviceToken, "authCode": authCode, "provider": "gmail"]
+        let body = ["email": email, "deviceToken": deviceToken, "authCode": authCode, "provider": "gmail", "apnsSandbox": apnsSandbox]
         if await post("registerDevice", body: body) {
             print("Gmail device registered for push notifications")
         }
     }
 
     func registerOutlookDevice(email: String, deviceToken: String, authCode: String) async {
-        let body = ["email": email, "deviceToken": deviceToken, "authCode": authCode, "provider": "outlook"]
+        let body = ["email": email, "deviceToken": deviceToken, "authCode": authCode, "provider": "outlook", "apnsSandbox": apnsSandbox]
         if await post("registerDevice", body: body) {
             print("Outlook device registered for push notifications")
         }
@@ -55,7 +61,8 @@ class PushAPIClient {
             "password": password,
             "host": host,
             "port": String(port),
-            "provider": "imap"
+            "provider": "imap",
+            "apnsSandbox": apnsSandbox
         ]
         if await post("registerDevice", body: body) {
             print("IMAP device registered for push notifications")

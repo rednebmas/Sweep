@@ -21,6 +21,7 @@ export async function pollNewMessages(config: IMAPConfig, lastUid: number): Prom
   });
 
   try {
+    console.log(`[IMAP] Connecting to ${config.host}:${config.port} for ${config.email}`);
     await client.connect();
     const lock = await client.getMailboxLock('INBOX');
 
@@ -53,6 +54,7 @@ export async function pollNewMessages(config: IMAPConfig, lastUid: number): Prom
         }
       }
 
+      console.log(`[IMAP] ${config.email}: found ${emails.length} new messages (lastUid: ${lastUid} → ${latestUid})`);
       return { emails, latestUid };
     } finally {
       lock.release();

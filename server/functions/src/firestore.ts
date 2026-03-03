@@ -18,6 +18,7 @@ export type Provider = 'gmail' | 'outlook' | 'imap';
 export interface UserData {
   deviceToken: string;
   provider: Provider;
+  apnsSandbox?: boolean;
   pendingEmails: EmailData[];
   // Gmail-specific
   refreshToken?: string;

@@ -28,7 +28,12 @@ platform :ios do
       scheme: "Sweep",
       export_method: "app-store",
       output_directory: "./build",
-      output_name: "Sweep.ipa"
+      output_name: "Sweep.ipa",
+      # Workaround: Xcode 26.3 Swift compiler crash in SIL performance inliner
+      # (isCallerAndCalleeLayoutConstraintsCompatible). Remove once fixed.
+      # https://github.com/swiftlang/swift/issues/83788
+      # https://github.com/swiftlang/swift/issues/83528
+      xcargs: "SWIFT_OPTIMIZATION_LEVEL='-Onone'"
     )
   end
 

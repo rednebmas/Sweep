@@ -75,7 +75,7 @@ functions.cloudEvent('onGmailNotification', async (event: functions.CloudEvent<{
   const pendingEmails = await getPendingEmails(emailAddress, 'gmail');
   const { title, body } = formatNotification(pendingEmails);
 
-  await sendNotification(user.deviceToken, title, body, pendingEmails.length);
+  await sendNotification(user.deviceToken, title, body, pendingEmails.length, user.apnsSandbox);
   console.log(`Sent Gmail notification to ${emailAddress}: ${pendingEmails.length} emails`);
 });
 
@@ -145,7 +145,7 @@ functions.http('onOutlookNotification', async (req: functions.Request, res: func
       const pendingEmails = await getPendingEmails(email, 'outlook');
       const { title, body } = formatNotification(pendingEmails);
 
-      await sendNotification(user.deviceToken, title, body, pendingEmails.length);
+      await sendNotification(user.deviceToken, title, body, pendingEmails.length, user.apnsSandbox);
       console.log(`Sent Outlook notification to ${email}: ${pendingEmails.length} emails`);
     } catch (error) {
       console.error(`Error processing Outlook notification for ${email}:`, error);
@@ -160,6 +160,7 @@ interface RegisterDeviceBody {
   deviceToken: string;
   authCode?: string;
   provider: Provider;
+  apnsSandbox?: string;
   // IMAP-specific
   password?: string;
   host?: string;
@@ -169,7 +170,8 @@ interface RegisterDeviceBody {
 functions.http('registerDevice', async (req: functions.Request, res: functions.Response) => {
   if (!validateRequest(req, res)) return;
 
-  const { email, deviceToken, provider } = req.body as RegisterDeviceBody;
+  const { email, deviceToken, provider, apnsSandbox: sandboxStr } = req.body as RegisterDeviceBody;
+  const apnsSandbox = sandboxStr === 'true';
 
   if (!email || !deviceToken || !provider) {
     res.status(400).send('Missing required fields');
@@ -186,6 +188,7 @@ functions.http('registerDevice', async (req: functions.Request, res: functions.R
 
       await setUser(email, 'gmail', {
         deviceToken,
+        apnsSandbox,
         refreshToken,
         historyId: watchResult.historyId,
         watchExpiry: watchResult.expiration,
@@ -206,6 +209,7 @@ functions.http('registerDevice', async (req: functions.Request, res: functions.R
 
       await setUser(email, 'outlook', {
         deviceToken,
+        apnsSandbox,
         msRefreshToken: refreshToken,
         subscriptionId: subscription.subscriptionId,
         subscriptionExpiry: subscription.expiration,
@@ -225,6 +229,7 @@ functions.http('registerDevice', async (req: functions.Request, res: functions.R
 
       await setUser(email, 'imap', {
         deviceToken,
+        apnsSandbox,
         imapPasswordEncrypted: encryptedPassword,
         imapHost: host,
         imapPort: parseInt(port || '993', 10),
@@ -357,7 +362,7 @@ functions.http('pollIMAPAccounts', async (req: functions.Request, res: functions
 
       const pendingEmails = await getPendingEmails(user.email, 'imap');
       const { title, body } = formatNotification(pendingEmails);
-      await sendNotification(user.deviceToken, title, body, pendingEmails.length);
+      await sendNotification(user.deviceToken, title, body, pendingEmails.length, user.apnsSandbox);
       notified++;
 
       console.log(`IMAP poll for ${user.email}: ${emails.length} new, ${pendingEmails.length} pending`);
