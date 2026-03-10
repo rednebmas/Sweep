@@ -99,8 +99,9 @@ class NotificationService {
     func notifyAppOpened() async {
         clearNewEmailNotifications()
         try? await UNUserNotificationCenter.current().setBadgeCount(0)
+        guard let token = deviceToken else { return }
         for account in AccountManager.shared.enabledAccounts {
-            await PushAPIClient.shared.appOpened(email: account.email, provider: account.providerType.rawValue)
+            await PushAPIClient.shared.appOpened(email: account.email, provider: account.providerType.rawValue, deviceToken: token)
         }
     }
 

@@ -77,6 +77,7 @@ class AccountManager: ObservableObject {
     }
 
     func removeAccount(_ account: EmailAccount) {
+        KeptThreadsStore.shared.removeAll(for: account.id)
         providers[account.id]?.signOut()
         providers.removeValue(forKey: account.id)
         accounts.removeAll { $0.id == account.id }

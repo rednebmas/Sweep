@@ -92,7 +92,15 @@ struct ContentRouter: View {
     @ObservedObject private var trialService = TrialService.shared
 
     private var hasAccess: Bool {
-        storeService.isPurchased || trialService.isTrialActive
+        #if DEBUG
+        return true
+        #else
+        return storeService.isPurchased || trialService.isTrialActive || isTestFlight
+        #endif
+    }
+
+    private var isTestFlight: Bool {
+        Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
     }
 
     var body: some View {

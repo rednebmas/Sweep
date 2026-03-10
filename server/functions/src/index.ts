@@ -1,5 +1,5 @@
 import * as functions from '@google-cloud/functions-framework';
-import { getUser, setUser, addPendingEmail, clearPendingEmails, getPendingEmails, getUserBySubscriptionId, getIMAPUsers, Provider } from './firestore';
+import { getUser, setUser, addPendingEmail, clearPendingEmails, getPendingEmails, getUserBySubscriptionId, getIMAPUsers, Provider, UserData } from './firestore';
 import { setupWatch, getEmailMetadata as getGmailMetadata, getNewMessages, exchangeAuthCode } from './gmail';
 import { exchangeMsAuthCode, createMailSubscription, renewSubscription, refreshMsToken, getMessageMetadata as getOutlookMetadata } from './outlook';
 import { pollNewMessages } from './imap';
@@ -250,12 +250,14 @@ functions.http('registerDevice', async (req: functions.Request, res: functions.R
 interface AppOpenedBody {
   email: string;
   provider: Provider;
+  deviceToken?: string;
+  apnsSandbox?: string;
 }
 
 functions.http('appOpened', async (req: functions.Request, res: functions.Response) => {
   if (!validateRequest(req, res)) return;
 
-  const { email, provider } = req.body as AppOpenedBody;
+  const { email, provider, deviceToken, apnsSandbox: sandboxStr } = req.body as AppOpenedBody;
 
   if (!email || !provider) {
     res.status(400).send('Missing email or provider');
@@ -269,6 +271,12 @@ functions.http('appOpened', async (req: functions.Request, res: functions.Respon
   }
 
   await clearPendingEmails(email, provider);
+
+  if (deviceToken) {
+    const update: Partial<UserData> = { deviceToken };
+    if (sandboxStr !== undefined) update.apnsSandbox = sandboxStr === 'true';
+    await setUser(email, provider, update);
+  }
 
   try {
     if (provider === 'gmail' && user.watchExpiry && user.refreshToken) {

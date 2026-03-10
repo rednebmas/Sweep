@@ -115,6 +115,19 @@ class KeptThreadsStore: ObservableObject {
         updateCount()
     }
 
+    func removeAll(for accountId: String) {
+        guard let context = modelContext else { return }
+        let descriptor = FetchDescriptor<KeptThread>(
+            predicate: #Predicate { $0.accountId == accountId }
+        )
+        guard let threads = try? context.fetch(descriptor) else { return }
+        for thread in threads {
+            context.delete(thread)
+        }
+        try? context.save()
+        updateCount()
+    }
+
     func clearAll() {
         guard let context = modelContext else { return }
         let descriptor = FetchDescriptor<KeptThread>()

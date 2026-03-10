@@ -24,7 +24,7 @@ struct SignInView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Swipe to keep.\nArchive the rest.")
+                Text("Swipe to keep.\nThe rest will be marked as read. Automatically.")
                     .font(.title3)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

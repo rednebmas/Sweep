@@ -69,8 +69,14 @@ class PushAPIClient {
         }
     }
 
-    func appOpened(email: String, provider: String) async {
-        if await post("appOpened", body: ["email": email, "provider": provider]) {
+    func appOpened(email: String, provider: String, deviceToken: String) async {
+        let body = [
+            "email": email,
+            "provider": provider,
+            "deviceToken": deviceToken,
+            "apnsSandbox": apnsSandbox
+        ]
+        if await post("appOpened", body: body) {
             print("App opened notification sent for \(provider)")
         }
     }
