@@ -38,16 +38,23 @@ class EmailListViewModel: ObservableObject {
             return
         }
 
-        isLoading = true
-        defer { isLoading = false }
+        if threads.isEmpty, let cached = ThreadDiskCache.load() {
+            threads = cached
+            refreshKeptCache()
+        }
+
+        if threads.isEmpty { isLoading = true }
 
         do {
-            threads = try await BackgroundFetchService.fetchThreads()
+            let fresh = try await BackgroundFetchService.fetchThreads()
+            threads = fresh
+            ThreadDiskCache.save(fresh)
             inboxService.prefetchBodies(for: threads)
             refreshKeptCache()
         } catch {
-            self.error = error
+            if threads.isEmpty { self.error = error }
         }
+        isLoading = false
     }
 
     func refresh() async {
@@ -74,6 +81,7 @@ class EmailListViewModel: ObservableObject {
 
         threads.append(contentsOf: restoredThreads)
         threads.sort { $0.timestamp > $1.timestamp }
+        ThreadDiskCache.save(threads)
         inboxService.prefetchBodies(for: restoredThreads)
     }
 
@@ -120,12 +128,14 @@ class EmailListViewModel: ObservableObject {
         }
 
         threads.removeAll { !$0.isKept }
+        ThreadDiskCache.save(threads)
     }
 
     func blockSender(_ thread: EmailThread) async {
         do {
             try await inboxService.blockSender(thread)
             threads.removeAll { $0.compositeId == thread.compositeId }
+            ThreadDiskCache.save(threads)
         } catch {
             self.error = error
         }
@@ -135,6 +145,7 @@ class EmailListViewModel: ObservableObject {
         do {
             try await inboxService.markAsSpam(thread)
             threads.removeAll { $0.compositeId == thread.compositeId }
+            ThreadDiskCache.save(threads)
         } catch {
             self.error = error
         }

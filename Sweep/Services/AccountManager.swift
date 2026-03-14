@@ -82,6 +82,7 @@ class AccountManager: ObservableObject {
         providers.removeValue(forKey: account.id)
         accounts.removeAll { $0.id == account.id }
         saveAccounts()
+        if accounts.isEmpty { ThreadDiskCache.clear() }
     }
 
     func toggleAccount(_ account: EmailAccount) {
