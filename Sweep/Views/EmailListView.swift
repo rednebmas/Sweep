@@ -144,6 +144,13 @@ struct EmailListView: View {
 
     private var emailList: some View {
         List {
+            if !keptStore.recentThreads.isEmpty {
+                KeptEmailsCarouselView(
+                    threads: keptStore.recentThreads,
+                    onSeeAll: { showingKeptSheet = true },
+                    onTap: { selectedThread = $0 }
+                )
+            }
             ForEach(viewModel.threads) { thread in
                 ContextMenuWrapper(
                     content: EmailRowView(thread: thread, snippetLines: appState.snippetLines, showAccountIndicator: accountManager.hasMultipleAccounts),
@@ -176,7 +183,7 @@ struct EmailListView: View {
 
     private var sweepButton: some View {
         Button {
-            Task { await viewModel.processNonKeptThreads() }
+            Task { await viewModel.processNonKeptThreads(animated: true) }
         } label: {
             Text("Sweep")
                 .font(.headline)

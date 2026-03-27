@@ -94,13 +94,29 @@ class AccountManager: ObservableObject {
     func restoreAllAccounts() async {
         isLoading = true
 
-        await migrateExistingGmailAccount()
+        await clearKeychainOnFreshInstall()
 
         for account in accounts {
             await restoreProvider(for: account)
         }
 
         isLoading = false
+    }
+
+    private func clearKeychainOnFreshInstall() async {
+        let key = "hasLaunchedBefore"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+
+        let gmail = GmailProvider()
+        if await gmail.restorePreviousSignIn() { gmail.signOut() }
+
+        let outlook = OutlookProvider()
+        if await outlook.restorePreviousSignIn() { outlook.signOut() }
+
+        for email in IMAPKeychain.allEmails() {
+            IMAPKeychain.delete(email: email)
+        }
     }
 
     private func restoreProvider(for account: EmailAccount) async {
@@ -115,31 +131,6 @@ class AccountManager: ObservableObject {
         if await provider.restorePreviousSignIn() {
             providers[account.id] = provider
         }
-    }
-
-    private func migrateExistingGmailAccount() async {
-        guard !UserDefaults.standard.bool(forKey: "multiAccountMigrated") else { return }
-
-        let provider = GmailProvider()
-        if await provider.restorePreviousSignIn(), let email = provider.userEmail {
-            let existingAccount = accounts.first { $0.email == email }
-            if existingAccount == nil {
-                let account = EmailAccount(
-                    id: provider.accountId,
-                    providerType: .gmail,
-                    email: email,
-                    addedAt: Date(),
-                    isEnabled: true
-                )
-                accounts.append(account)
-                providers[account.id] = provider
-                saveAccounts()
-
-                KeptThreadsStore.shared.migrateExistingThreads(to: account.id)
-            }
-        }
-
-        UserDefaults.standard.set(true, forKey: "multiAccountMigrated")
     }
 
     private func loadAccounts() {

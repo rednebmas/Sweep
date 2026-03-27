@@ -11,6 +11,7 @@ class KeptThreadsStore: ObservableObject {
     static let shared = KeptThreadsStore()
 
     @Published private(set) var count: Int = 0
+    @Published private(set) var recentThreads: [EmailThread] = []
 
     private var modelContainer: ModelContainer?
     private var modelContext: ModelContext?
@@ -27,6 +28,17 @@ class KeptThreadsStore: ObservableObject {
         guard let context = modelContext else { return }
         let descriptor = FetchDescriptor<KeptThread>()
         count = (try? context.fetchCount(descriptor)) ?? 0
+        updateRecentThreads()
+    }
+
+    private func updateRecentThreads() {
+        guard let context = modelContext else { return }
+        var descriptor = FetchDescriptor<KeptThread>(
+            sortBy: [SortDescriptor(\.keptAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 10
+        guard let keptThreads = try? context.fetch(descriptor) else { return }
+        recentThreads = keptThreads.filter(\.hasCachedData).map { $0.toEmailThread() }
     }
 
     func isKept(_ threadId: String, accountId: String) -> Bool {
@@ -139,16 +151,4 @@ class KeptThreadsStore: ObservableObject {
         updateCount()
     }
 
-    func migrateExistingThreads(to accountId: String) {
-        guard let context = modelContext else { return }
-        let descriptor = FetchDescriptor<KeptThread>(
-            predicate: #Predicate { $0.accountId == "" }
-        )
-        guard let threads = try? context.fetch(descriptor) else { return }
-        for thread in threads {
-            thread.accountId = accountId
-            thread.compositeId = "\(accountId):\(thread.threadId)"
-        }
-        try? context.save()
-    }
 }

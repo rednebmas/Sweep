@@ -100,7 +100,7 @@ class EmailListViewModel: ObservableObject {
         }
     }
 
-    func processNonKeptThreads() async {
+    func processNonKeptThreads(animated: Bool = false) async {
         if isDetailSheetOpen || isBrowserOpen {
             showSkippedProcessingToast = true
             return
@@ -127,7 +127,8 @@ class EmailListViewModel: ObservableObject {
             self.error = error
         }
 
-        threads.removeAll { !$0.isKept }
+        let removal = { self.threads.removeAll { !$0.isKept } }
+        if animated { withAnimation(.easeInOut(duration: 0.35)) { removal() } } else { removal() }
         ThreadDiskCache.save(threads)
     }
 
