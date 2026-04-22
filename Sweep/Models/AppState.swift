@@ -50,7 +50,7 @@ class AppState: ObservableObject {
         self.archiveSessions = Self.loadArchiveSessions()
         self.snippetLines = UserDefaults.standard.object(forKey: "snippetLines") as? Int ?? 3
         self.archiveOnBackground = UserDefaults.standard.bool(forKey: "archiveOnBackground")
-        self.manualSweep = UserDefaults.standard.bool(forKey: "manualSweep")
+        self.manualSweep = UserDefaults.standard.object(forKey: "manualSweep") as? Bool ?? true
     }
 
     func updateEmailFetchTimestamp(newestEmailDate: Date) {

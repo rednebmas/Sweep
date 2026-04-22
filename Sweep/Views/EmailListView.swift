@@ -30,12 +30,19 @@ struct EmailListView: View {
                     )
                     .ignoresSafeArea()
                 }
-                Group {
-                    if viewModel.isLoading && viewModel.threads.isEmpty {
-                        loadingView
-                    } else if viewModel.error != nil {
+                VStack(spacing: 0) {
+                    if !keptStore.recentThreads.isEmpty {
+                        KeptEmailsCarouselView(
+                            threads: keptStore.recentThreads,
+                            onSeeAll: { showingKeptSheet = true },
+                            onTap: { selectedThread = $0 },
+                            onUnkeep: { viewModel.unkeep($0) }
+                        )
+                        .transaction { $0.animation = nil }
+                    }
+                    if viewModel.error != nil {
                         errorView
-                    } else if viewModel.threads.isEmpty {
+                    } else if viewModel.threads.isEmpty && !viewModel.isLoading {
                         emptyView
                     } else {
                         emailList
@@ -63,8 +70,13 @@ struct EmailListView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gear")
+                    HStack(spacing: 12) {
+                        if viewModel.isLoading {
+                            ProgressView()
+                        }
+                        NavigationLink(destination: SettingsView()) {
+                            Image(systemName: "gear")
+                        }
                     }
                 }
             }
@@ -90,21 +102,9 @@ struct EmailListView: View {
         }
     }
 
-    private var loadingView: some View {
-        ProgressView("Loading emails...")
-    }
-
     private var emptyView: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                ContentUnavailableView(
-                    "No emails",
-                    systemImage: "tray",
-                    description: Text("You're all caught up!")
-                )
-                .frame(width: geometry.size.width, height: geometry.size.height)
-            }
-        }
+        ContentUnavailableView("No emails", systemImage: "tray", description: Text("You're all caught up!"))
+            .frame(maxHeight: .infinity)
     }
 
     private var errorView: some View {
@@ -144,13 +144,6 @@ struct EmailListView: View {
 
     private var emailList: some View {
         List {
-            if !keptStore.recentThreads.isEmpty {
-                KeptEmailsCarouselView(
-                    threads: keptStore.recentThreads,
-                    onSeeAll: { showingKeptSheet = true },
-                    onTap: { selectedThread = $0 }
-                )
-            }
             ForEach(viewModel.threads) { thread in
                 ContextMenuWrapper(
                     content: EmailRowView(thread: thread, snippetLines: appState.snippetLines, showAccountIndicator: accountManager.hasMultipleAccounts),

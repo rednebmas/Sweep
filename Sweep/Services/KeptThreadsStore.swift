@@ -50,6 +50,14 @@ class KeptThreadsStore: ObservableObject {
         return (try? context.fetchCount(descriptor)) ?? 0 > 0
     }
 
+    func hasKeptThreads(for accountId: String) -> Bool {
+        guard let context = modelContext else { return false }
+        let descriptor = FetchDescriptor<KeptThread>(
+            predicate: #Predicate { $0.accountId == accountId }
+        )
+        return (try? context.fetchCount(descriptor)) ?? 0 > 0
+    }
+
     func keptThreadIds(for accountId: String) -> Set<String> {
         guard let context = modelContext else { return [] }
         let descriptor = FetchDescriptor<KeptThread>(
@@ -80,6 +88,15 @@ class KeptThreadsStore: ObservableObject {
         guard !isKept(thread.id, accountId: thread.accountId) else { return }
         let keptThread = KeptThread(thread: thread)
         context.insert(keptThread)
+        try? context.save()
+        updateCount()
+    }
+
+    func addKeptBatch(_ threads: [EmailThread]) {
+        guard let context = modelContext else { return }
+        for thread in threads where !isKept(thread.id, accountId: thread.accountId) {
+            context.insert(KeptThread(thread: thread))
+        }
         try? context.save()
         updateCount()
     }

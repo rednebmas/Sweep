@@ -23,6 +23,7 @@ class GmailProvider: EmailProviderProtocol {
 
     func signIn() async throws {
         try await auth.signIn()
+        await service.restoreKeptThreads()
     }
 
     func signOut() {

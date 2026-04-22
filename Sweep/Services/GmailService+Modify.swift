@@ -113,17 +113,23 @@ extension GmailService {
 
     // MARK: - Kept Label
 
-    func getOrCreateKeptLabelId() async throws -> String {
+    func findKeptLabelId() async throws -> String? {
         if let cached = keptLabelId { return cached }
 
         let url = URL(string: "\(baseURL)/labels")!
         let request = try await authorizedRequest(url)
         let response: LabelListResponse = try await performRequest(request)
 
-        if let existing = response.labels?.first(where: { $0.name == "kept" }) {
-            keptLabelId = existing.id
-            return existing.id
+        guard let existing = response.labels?.first(where: { $0.name == "kept" }) else {
+            return nil
         }
+
+        keptLabelId = existing.id
+        return existing.id
+    }
+
+    func getOrCreateKeptLabelId() async throws -> String {
+        if let existing = try await findKeptLabelId() { return existing }
 
         let createURL = URL(string: "\(baseURL)/labels")!
         var createRequest = try await authorizedRequest(createURL)

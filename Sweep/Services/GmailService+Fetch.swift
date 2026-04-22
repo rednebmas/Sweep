@@ -10,37 +10,44 @@ extension GmailService {
     // MARK: - Fetch Threads
 
     func fetchThreads(since date: Date) async throws -> [EmailThread] {
-        guard isAuthenticated else {
-            throw GmailError.notAuthenticated
-        }
-
         let timestamp = Int(date.timeIntervalSince1970)
         let query = "after:\(timestamp) in:inbox is:unread"
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-
         let url = URL(string: "\(baseURL)/threads?q=\(encodedQuery)&maxResults=100")!
+        return try await fetchThreadList(url: url).sorted { $0.timestamp > $1.timestamp }
+    }
+
+    func fetchKeptThreads() async throws -> [EmailThread] {
+        guard let labelId = try await findKeptLabelId() else { return [] }
+        let url = URL(string: "\(baseURL)/threads?labelIds=\(labelId)&maxResults=500")!
+        return try await fetchThreadList(url: url)
+    }
+
+    private func fetchThreadList(url: URL) async throws -> [EmailThread] {
+        guard isAuthenticated else { throw GmailError.notAuthenticated }
         let request = try await authorizedRequest(url)
         let response: ThreadListResponse = try await performRequest(request)
+        guard let threadRefs = response.threads else { return [] }
+        return try await fetchThreadDetails(for: threadRefs)
+    }
 
-        guard let threadRefs = response.threads else {
-            return []
-        }
+    func restoreKeptThreads() async {
+        let keptStore = KeptThreadsStore.shared
+        guard !keptStore.hasKeptThreads(for: accountId) else { return }
+        guard let threads = try? await fetchKeptThreads(), !threads.isEmpty else { return }
+        keptStore.addKeptBatch(threads)
+    }
 
-        return try await withThrowingTaskGroup(of: EmailThread?.self) { group in
-            for threadRef in threadRefs {
-                group.addTask {
-                    try await self.fetchThreadDetail(threadRef.id)
-                }
+    private func fetchThreadDetails(for refs: [ThreadRef]) async throws -> [EmailThread] {
+        try await withThrowingTaskGroup(of: EmailThread?.self) { group in
+            for ref in refs {
+                group.addTask { try await self.fetchThreadDetail(ref.id) }
             }
-
             var threads: [EmailThread] = []
             for try await thread in group {
-                if let thread = thread {
-                    threads.append(thread)
-                }
+                if let thread { threads.append(thread) }
             }
-
-            return threads.sorted { $0.timestamp > $1.timestamp }
+            return threads
         }
     }
 

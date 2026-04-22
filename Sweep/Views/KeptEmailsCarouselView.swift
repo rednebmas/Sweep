@@ -8,6 +8,7 @@ struct KeptEmailsCarouselView: View {
     let threads: [EmailThread]
     let onSeeAll: () -> Void
     let onTap: (EmailThread) -> Void
+    let onUnkeep: (EmailThread) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -15,10 +16,7 @@ struct KeptEmailsCarouselView: View {
             scrollCards
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 4)
-        .listRowInsets(EdgeInsets())
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
+        .padding(.vertical, 8)
     }
 
     private var header: some View {
@@ -37,13 +35,21 @@ struct KeptEmailsCarouselView: View {
 
     private var scrollCards: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(alignment: .top, spacing: 8) {
                 ForEach(threads.prefix(10)) { thread in
                     cardView(thread)
                         .onTapGesture { onTap(thread) }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                onUnkeep(thread)
+                            } label: {
+                                Label("Unkeep", systemImage: "xmark")
+                            }
+                        }
                 }
                 seeAllCard
             }
+            .padding(.bottom, 6)
         }
     }
 

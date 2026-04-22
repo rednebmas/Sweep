@@ -40,7 +40,6 @@ class EmailListViewModel: ObservableObject {
 
         if threads.isEmpty, let cached = ThreadDiskCache.load() {
             threads = cached
-            refreshKeptCache()
         }
 
         if threads.isEmpty { isLoading = true }
@@ -51,6 +50,7 @@ class EmailListViewModel: ObservableObject {
             ThreadDiskCache.save(fresh)
             inboxService.prefetchBodies(for: threads)
             refreshKeptCache()
+        } catch is CancellationError {
         } catch {
             if threads.isEmpty { self.error = error }
         }
@@ -100,6 +100,14 @@ class EmailListViewModel: ObservableObject {
         }
     }
 
+    func unkeep(_ thread: EmailThread) {
+        keptStore.removeKept(thread.id, accountId: thread.accountId)
+        if let index = threads.firstIndex(where: { $0.compositeId == thread.compositeId }) {
+            threads[index].isKept = false
+        }
+        Task { try? await inboxService.removeKeptLabel([thread]) }
+    }
+
     func processNonKeptThreads(animated: Bool = false) async {
         if isDetailSheetOpen || isBrowserOpen {
             showSkippedProcessingToast = true
@@ -109,27 +117,37 @@ class EmailListViewModel: ObservableObject {
         let toProcess = threads.filter { !$0.isKept }
         guard !toProcess.isEmpty else { return }
 
-        do {
-            if appState.archiveOnBackground {
-                try await inboxService.archiveThreads(toProcess)
-            } else {
-                try await inboxService.markAsRead(toProcess)
-            }
-            let session = SweepSession(
-                threads: toProcess,
-                wasArchived: appState.archiveOnBackground
-            )
-            appState.addArchiveSession(session)
-            let newestDate = threads.map(\.timestamp).max() ?? Date()
-            appState.updateEmailFetchTimestamp(newestEmailDate: newestDate)
-            NotificationService.shared.clearNewEmailNotifications()
-        } catch {
-            self.error = error
-        }
+        let wasArchived = appState.archiveOnBackground
+        let session = SweepSession(threads: toProcess, wasArchived: wasArchived)
+        let newestDate = threads.map(\.timestamp).max() ?? Date()
+
+        appState.addArchiveSession(session)
+        appState.updateEmailFetchTimestamp(newestEmailDate: newestDate)
+        NotificationService.shared.clearNewEmailNotifications()
 
         let removal = { self.threads.removeAll { !$0.isKept } }
         if animated { withAnimation(.easeInOut(duration: 0.35)) { removal() } } else { removal() }
         ThreadDiskCache.save(threads)
+
+        Task { [weak self] in
+            do {
+                if wasArchived {
+                    try await UnifiedInboxService.shared.archiveThreads(toProcess)
+                } else {
+                    try await UnifiedInboxService.shared.markAsRead(toProcess)
+                }
+            } catch {
+                self?.rollbackSweep(session: session, threads: toProcess, error: error)
+            }
+        }
+    }
+
+    private func rollbackSweep(session: SweepSession, threads restored: [EmailThread], error: Error) {
+        appState.clearArchiveSession(session)
+        self.threads.append(contentsOf: restored)
+        self.threads.sort { $0.timestamp > $1.timestamp }
+        ThreadDiskCache.save(self.threads)
+        self.error = error
     }
 
     func blockSender(_ thread: EmailThread) async {
