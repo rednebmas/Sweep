@@ -1,5 +1,6 @@
 import * as functions from '@google-cloud/functions-framework';
 import { getUser, setUser, addPendingEmail, clearPendingEmails, getPendingEmails, getUserBySubscriptionId, getIMAPUsers, Provider, UserData } from './firestore';
+import { renewAllExpiringWatches } from './renew';
 import { setupWatch, getEmailMetadata as getGmailMetadata, getNewMessages, exchangeAuthCode } from './gmail';
 import { exchangeMsAuthCode, createMailSubscription, renewSubscription, refreshMsToken, getMessageMetadata as getOutlookMetadata } from './outlook';
 import { pollNewMessages } from './imap';
@@ -380,4 +381,10 @@ functions.http('pollIMAPAccounts', async (req: functions.Request, res: functions
   }
 
   res.json({ success: true, polled, notified });
+});
+
+functions.http('renewWatches', async (req: functions.Request, res: functions.Response) => {
+  if (!validateRequest(req, res)) return;
+  const result = await renewAllExpiringWatches();
+  res.json({ success: true, ...result });
 });

@@ -47,7 +47,12 @@ export interface APNsResult {
   error?: string;
 }
 
-export function sendNotification(deviceToken: string, title: string, body: string, badge: number, sandbox?: boolean): Promise<APNsResult> {
+export interface NotificationOptions {
+  category?: string;
+  collapseId?: string;
+}
+
+export function sendNotification(deviceToken: string, title: string, body: string, badge: number, sandbox?: boolean, options?: NotificationOptions): Promise<APNsResult> {
   return new Promise((resolve, reject) => {
     const jwt = generateJWT();
     const path = `/3/device/${deviceToken}`;
@@ -59,7 +64,7 @@ export function sendNotification(deviceToken: string, title: string, body: strin
         'content-available': 1,
         'mutable-content': 1,
         'interruption-level': 'passive',
-        category: 'NEW_EMAIL'
+        category: options?.category ?? 'NEW_EMAIL'
       }
     });
 
@@ -73,7 +78,7 @@ export function sendNotification(deviceToken: string, title: string, body: strin
       ':path': path,
       'authorization': `bearer ${jwt}`,
       'apns-topic': BUNDLE_ID,
-      'apns-collapse-id': COLLAPSE_ID,
+      'apns-collapse-id': options?.collapseId ?? COLLAPSE_ID,
       'apns-push-type': 'alert',
       'apns-priority': '5',
       'content-type': 'application/json'
