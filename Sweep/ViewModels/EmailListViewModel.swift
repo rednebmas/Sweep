@@ -66,18 +66,7 @@ class EmailListViewModel: ObservableObject {
         defer { isLoading = false }
 
         let existingIds = Set(threads.map(\.compositeId))
-        var restoredThreads: [EmailThread] = []
-
-        for (accountId, threadIds) in session.threadsByAccount() {
-            guard let provider = accountManager.provider(for: accountId) else { continue }
-            for threadId in threadIds {
-                let compositeId = "\(accountId):\(threadId)"
-                guard !existingIds.contains(compositeId) else { continue }
-                if let thread = try? await provider.fetchThreadDetail(threadId) {
-                    restoredThreads.append(thread)
-                }
-            }
-        }
+        let restoredThreads = await accountManager.fetchThreads(for: session, excluding: existingIds)
 
         threads.append(contentsOf: restoredThreads)
         threads.sort { $0.timestamp > $1.timestamp }

@@ -99,18 +99,7 @@ struct SweepSessionDetailView: View {
     }
 
     private func loadThreads() async {
-        var loadedThreads: [EmailThread] = []
-
-        for (accountId, threadIds) in session.threadsByAccount() {
-            guard let provider = accountManager.provider(for: accountId) else { continue }
-            for threadId in threadIds {
-                if let thread = try? await provider.fetchThreadDetail(threadId) {
-                    loadedThreads.append(thread)
-                }
-            }
-        }
-
-        threads = loadedThreads.sorted { $0.timestamp > $1.timestamp }
+        threads = await accountManager.fetchThreads(for: session)
         isLoading = false
     }
 

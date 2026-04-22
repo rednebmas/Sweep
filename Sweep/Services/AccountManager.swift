@@ -145,4 +145,19 @@ class AccountManager: ObservableObject {
         guard let encoded = try? JSONEncoder().encode(accounts) else { return }
         UserDefaults.standard.set(encoded, forKey: accountsKey)
     }
+
+    func fetchThreads(for session: SweepSession, excluding existing: Set<String> = []) async -> [EmailThread] {
+        var results: [EmailThread] = []
+        for (accountId, threadIds) in session.threadsByAccount() {
+            guard let provider = provider(for: accountId) else { continue }
+            for threadId in threadIds {
+                let compositeId = "\(accountId):\(threadId)"
+                guard !existing.contains(compositeId) else { continue }
+                if let thread = try? await provider.fetchThreadDetail(threadId) {
+                    results.append(thread)
+                }
+            }
+        }
+        return results.sorted { $0.timestamp > $1.timestamp }
+    }
 }

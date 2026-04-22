@@ -131,41 +131,27 @@ class KeptThreadsStore: ObservableObject {
     }
 
     func removeKept(_ threadId: String, accountId: String) {
-        guard let context = modelContext else { return }
         let compositeId = "\(accountId):\(threadId)"
-        let descriptor = FetchDescriptor<KeptThread>(
+        deleteMatching(FetchDescriptor<KeptThread>(
             predicate: #Predicate { $0.compositeId == compositeId }
-        )
-        guard let threads = try? context.fetch(descriptor) else { return }
-        for thread in threads {
-            context.delete(thread)
-        }
-        try? context.save()
-        updateCount()
+        ))
     }
 
     func removeAll(for accountId: String) {
-        guard let context = modelContext else { return }
-        let descriptor = FetchDescriptor<KeptThread>(
+        deleteMatching(FetchDescriptor<KeptThread>(
             predicate: #Predicate { $0.accountId == accountId }
-        )
-        guard let threads = try? context.fetch(descriptor) else { return }
-        for thread in threads {
-            context.delete(thread)
-        }
-        try? context.save()
-        updateCount()
+        ))
     }
 
     func clearAll() {
+        deleteMatching(FetchDescriptor<KeptThread>())
+    }
+
+    private func deleteMatching(_ descriptor: FetchDescriptor<KeptThread>) {
         guard let context = modelContext else { return }
-        let descriptor = FetchDescriptor<KeptThread>()
         guard let threads = try? context.fetch(descriptor) else { return }
-        for thread in threads {
-            context.delete(thread)
-        }
+        for thread in threads { context.delete(thread) }
         try? context.save()
         updateCount()
     }
-
 }
