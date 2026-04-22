@@ -82,10 +82,12 @@ class GmailService: ObservableObject {
 
     func signIn() async throws {
         try await auth.signIn()
+        await restoreKeptThreads()
     }
 
     func signOut() {
         auth.signOut()
+        clearCache()
     }
 
     // MARK: - API Helpers

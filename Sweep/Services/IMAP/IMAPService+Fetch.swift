@@ -75,7 +75,7 @@ extension IMAPService {
         return attachments
     }
 
-    func downloadAttachmentData(_ attachment: EmailAttachment) async throws -> Data {
+    func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data {
         guard let uidValue = parseUID(attachment.messageId) else {
             throw IMAPError.fetchFailed("Invalid UID")
         }

@@ -188,7 +188,7 @@ extension GmailService {
         return attachments
     }
 
-    func downloadAttachmentData(_ attachment: EmailAttachment) async throws -> Data {
+    func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data {
         let base64String = try await fetchAttachmentData(
             messageId: attachment.messageId,
             attachmentId: attachment.id

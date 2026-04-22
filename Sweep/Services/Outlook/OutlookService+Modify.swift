@@ -6,7 +6,7 @@ import Foundation
 
 extension OutlookService {
 
-    func archiveMessages(_ messageIds: [String]) async throws {
+    func archiveThreads(_ messageIds: [String]) async throws {
         for messageId in messageIds {
             try await moveMessage(messageId, to: "archive")
         }
@@ -59,7 +59,7 @@ extension OutlookService {
         try await performVoidRequest(request)
     }
 
-    func restoreMessages(_ messageIds: [String], wasArchived: Bool) async throws {
+    func restoreThreads(_ messageIds: [String], wasArchived: Bool) async throws {
         for messageId in messageIds {
             try await updateMessage(messageId, isRead: false)
             if wasArchived {

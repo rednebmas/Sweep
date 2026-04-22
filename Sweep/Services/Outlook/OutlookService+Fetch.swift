@@ -119,7 +119,7 @@ extension OutlookService {
         return attachments
     }
 
-    func downloadAttachmentData(_ attachment: EmailAttachment) async throws -> Data {
+    func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data {
         guard isAuthenticated else {
             throw OutlookError.notAuthenticated
         }

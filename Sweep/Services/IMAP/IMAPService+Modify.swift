@@ -6,7 +6,7 @@ import Foundation
 import SwiftMail
 
 extension IMAPService {
-    func archiveMessages(_ uids: [String]) async throws {
+    func archiveThreads(_ uids: [String]) async throws {
         try await withConnection { server in
             _ = try await server.selectMailbox(self.folderPaths.inbox)
             try await server.move(messages: self.uidSet(from: uids), to: self.folderPaths.archive)
@@ -40,7 +40,7 @@ extension IMAPService {
         }
     }
 
-    func restoreMessages(_ uids: [String], wasArchived: Bool) async throws {
+    func restoreThreads(_ uids: [String], wasArchived: Bool) async throws {
         let sourceFolder = wasArchived ? folderPaths.archive : folderPaths.junk
         try await withConnection { server in
             _ = try await server.selectMailbox(sourceFolder)

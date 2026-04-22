@@ -41,15 +41,15 @@ class AccountManager: ObservableObject {
     }
 
     func addGmailAccount() async throws {
-        try await addAccount(provider: GmailProvider())
+        try await addAccount(provider: GmailService(auth: AuthService()))
     }
 
     func addOutlookAccount() async throws {
-        try await addAccount(provider: OutlookProvider())
+        try await addAccount(provider: OutlookService(auth: OutlookAuth()))
     }
 
     func addIMAPAccount(credentials: IMAPCredentials) async throws {
-        try await addAccount(provider: IMAPProvider(credentials: credentials))
+        try await addAccount(provider: IMAPService(credentials: credentials))
     }
 
     private func addAccount(provider: any EmailProviderProtocol) async throws {
@@ -108,10 +108,10 @@ class AccountManager: ObservableObject {
         guard !UserDefaults.standard.bool(forKey: key) else { return }
         UserDefaults.standard.set(true, forKey: key)
 
-        let gmail = GmailProvider()
-        if await gmail.restorePreviousSignIn() { gmail.signOut() }
+        let gmail = await GmailService(auth: AuthService())
+        if await gmail.restorePreviousSignIn() { await gmail.signOut() }
 
-        let outlook = OutlookProvider()
+        let outlook = OutlookService(auth: OutlookAuth())
         if await outlook.restorePreviousSignIn() { outlook.signOut() }
 
         for email in IMAPKeychain.allEmails() {
@@ -122,11 +122,11 @@ class AccountManager: ObservableObject {
     private func restoreProvider(for account: EmailAccount) async {
         let provider: any EmailProviderProtocol
         switch account.providerType {
-        case .gmail: provider = GmailProvider()
-        case .outlook: provider = OutlookProvider()
+        case .gmail: provider = await GmailService(auth: AuthService())
+        case .outlook: provider = OutlookService(auth: OutlookAuth())
         case .imap:
             guard let credentials = IMAPKeychain.load(email: account.email) else { return }
-            provider = IMAPProvider(credentials: credentials)
+            provider = IMAPService(credentials: credentials)
         }
         if await provider.restorePreviousSignIn() {
             providers[account.id] = provider

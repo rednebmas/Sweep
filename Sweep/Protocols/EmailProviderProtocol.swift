@@ -9,6 +9,7 @@ protocol EmailProviderProtocol: AnyObject {
     var accountId: String { get }
     var userEmail: String? { get }
     var isAuthenticated: Bool { get }
+    var serverAuthCode: String? { get }
 
     func signIn() async throws
     func signOut()
@@ -35,6 +36,7 @@ protocol EmailProviderProtocol: AnyObject {
 }
 
 extension EmailProviderProtocol {
+    var serverAuthCode: String? { nil }
     func applyKeptLabel(_ threadIds: [String]) async throws {}
     func removeKeptLabel(_ threadIds: [String]) async throws {}
     func fetchAttachments(_ threadId: String) async throws -> [EmailAttachment] { [] }

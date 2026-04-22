@@ -67,16 +67,14 @@ class NotificationService {
 
             switch account.providerType {
             case .gmail:
-                guard let gmailProvider = provider as? GmailProvider,
-                      let authCode = gmailProvider.serverAuthCode else { continue }
+                guard let authCode = provider.serverAuthCode else { continue }
                 await PushAPIClient.shared.registerGmailDevice(
                     email: account.email,
                     deviceToken: token,
                     authCode: authCode
                 )
             case .outlook:
-                guard let outlookProvider = provider as? OutlookProvider,
-                      let authCode = outlookProvider.serverAuthCode else { continue }
+                guard let authCode = provider.serverAuthCode else { continue }
                 await PushAPIClient.shared.registerOutlookDevice(
                     email: account.email,
                     deviceToken: token,
