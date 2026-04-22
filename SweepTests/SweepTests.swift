@@ -48,19 +48,19 @@ final class SweepTests: XCTestCase {
     }
 
     func testParseDateHeader_withoutDayName() {
-        let date = gmail.parseDateHeader("17 Feb 2026 14:23:45 -0800")
-        let components = calendar(utc: false).dateComponents(
-            in: TimeZone(secondsFromGMT: -28800)!, from: date)
-        XCTAssertEqual(components.year, 2026)
-        XCTAssertEqual(components.day, 17)
+        assertParses17Feb2026("17 Feb 2026 14:23:45 -0800")
     }
 
     func testParseDateHeader_withoutDayNameAndWithComment() {
-        let date = gmail.parseDateHeader("17 Feb 2026 14:23:45 -0800 (PST)")
+        assertParses17Feb2026("17 Feb 2026 14:23:45 -0800 (PST)")
+    }
+
+    private func assertParses17Feb2026(_ header: String, file: StaticString = #filePath, line: UInt = #line) {
+        let date = gmail.parseDateHeader(header)
         let components = calendar(utc: false).dateComponents(
             in: TimeZone(secondsFromGMT: -28800)!, from: date)
-        XCTAssertEqual(components.year, 2026)
-        XCTAssertEqual(components.day, 17)
+        XCTAssertEqual(components.year, 2026, file: file, line: line)
+        XCTAssertEqual(components.day, 17, file: file, line: line)
     }
 
     func testParseDateHeader_nil() {

@@ -84,18 +84,7 @@ class OutlookAuth {
                 let parameters = MSALInteractiveTokenParameters(scopes: self.scopes, webviewParameters: webParameters)
 
                 application.acquireToken(with: parameters) { [weak self] result, error in
-                    if let error = error {
-                        continuation.resume(throwing: error)
-                        return
-                    }
-
-                    guard let result = result else {
-                        continuation.resume(throwing: OutlookError.noResult)
-                        return
-                    }
-
-                    self?.handleAuthResult(result)
-                    continuation.resume()
+                    self?.resumeWithTokenResult(result, error: error, continuation: continuation)
                 }
             }
         }
@@ -131,18 +120,7 @@ class OutlookAuth {
 
         return try await withCheckedThrowingContinuation { continuation in
             application.acquireTokenSilent(with: parameters) { [weak self] result, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                    return
-                }
-
-                guard let result = result else {
-                    continuation.resume(throwing: OutlookError.noResult)
-                    return
-                }
-
-                self?.handleAuthResult(result)
-                continuation.resume()
+                self?.resumeWithTokenResult(result, error: error, continuation: continuation)
             }
         }
         #else
@@ -188,6 +166,19 @@ class OutlookAuth {
         currentAccount = result.account
         userEmail = result.account.username
         userId = result.account.identifier
+    }
+
+    private func resumeWithTokenResult(_ result: MSALResult?, error: Error?, continuation: CheckedContinuation<Void, Error>) {
+        if let error = error {
+            continuation.resume(throwing: error)
+            return
+        }
+        guard let result = result else {
+            continuation.resume(throwing: OutlookError.noResult)
+            return
+        }
+        handleAuthResult(result)
+        continuation.resume()
     }
     #endif
 }

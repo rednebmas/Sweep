@@ -28,22 +28,7 @@ extension OutlookService {
             return []
         }
 
-        return messages.map { message in
-            EmailThread(
-                id: message.id,
-                accountId: accountId,
-                providerType: .outlook,
-                subject: message.subject ?? "(No Subject)",
-                snippet: message.bodyPreview ?? "",
-                from: message.from?.emailAddress?.name ?? message.from?.emailAddress?.address ?? "Unknown",
-                fromEmail: message.from?.emailAddress?.address ?? "",
-                timestamp: message.parsedDate,
-                hasAttachments: message.hasAttachments ?? false,
-                messageCount: 1,
-                unsubscribeURL: nil,
-                isKept: KeptThreadsStore.shared.isKept(message.id, accountId: accountId)
-            )
-        }
+        return messages.map(emailThread(from:))
     }
 
     func fetchThreadDetail(_ messageId: String) async throws -> EmailThread? {
@@ -56,8 +41,11 @@ extension OutlookService {
 
         let request = try await authorizedRequest(url)
         let message: OutlookMessage = try await performRequest(request)
+        return emailThread(from: message)
+    }
 
-        return EmailThread(
+    private func emailThread(from message: OutlookMessage) -> EmailThread {
+        EmailThread(
             id: message.id,
             accountId: accountId,
             providerType: .outlook,

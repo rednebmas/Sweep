@@ -40,41 +40,15 @@ class OutlookService {
 
     func authorizedRequest(_ url: URL) async throws -> URLRequest {
         try await auth.refreshTokenIfNeeded()
-
-        guard let token = auth.token else {
-            throw OutlookError.notAuthenticated
-        }
-
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        return request
+        guard let token = auth.token else { throw OutlookError.notAuthenticated }
+        return HTTPClient.bearerRequest(url: url, token: token)
     }
 
-    func performRequest<T: Decodable>(_ request: URLRequest) async throws -> T {
-        let data = try await executeRequest(request)
-        return try JSONDecoder().decode(T.self, from: data)
-    }
+}
 
-    func performVoidRequest(_ request: URLRequest) async throws {
-        _ = try await executeRequest(request)
-    }
-
-    private func executeRequest(_ request: URLRequest) async throws -> Data {
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw OutlookError.apiError("Invalid response")
-        }
-
-        if httpResponse.statusCode == 401 {
-            throw OutlookError.notAuthenticated
-        }
-
-        if httpResponse.statusCode >= 400 {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw OutlookError.apiError(errorMessage)
-        }
-
-        return data
+extension OutlookService: AuthenticatedHTTPService {
+    static func httpError(status: Int, data: Data) -> Error {
+        if status == 401 { return OutlookError.notAuthenticated }
+        return OutlookError.apiError(String(data: data, encoding: .utf8) ?? "Invalid response")
     }
 }
