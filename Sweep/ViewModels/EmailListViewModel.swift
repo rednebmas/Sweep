@@ -121,7 +121,7 @@ class EmailListViewModel: ObservableObject {
         let session = SweepSession(threads: toProcess, wasArchived: wasArchived)
         let newestDate = threads.map(\.timestamp).max() ?? Date()
 
-        appState.addArchiveSession(session)
+        appState.addSweepSession(session)
         appState.updateEmailFetchTimestamp(newestEmailDate: newestDate)
         NotificationService.shared.clearNewEmailNotifications()
 
@@ -143,7 +143,7 @@ class EmailListViewModel: ObservableObject {
     }
 
     private func rollbackSweep(session: SweepSession, threads restored: [EmailThread], error: Error) {
-        appState.clearArchiveSession(session)
+        appState.clearSweepSession(session)
         self.threads.append(contentsOf: restored)
         self.threads.sort { $0.timestamp > $1.timestamp }
         ThreadDiskCache.save(self.threads)

@@ -8,7 +8,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject private var appState = AppState.shared
     @ObservedObject private var accountManager = AccountManager.shared
-    @State private var selectedSession: ArchiveSession?
+    @State private var selectedSession: SweepSession?
     @State private var showAllSweeps = false
     @State private var showAddAccount = false
 
@@ -70,16 +70,16 @@ struct SettingsView: View {
         }
     }
 
-    private var visibleSessions: [ArchiveSession] {
+    private var visibleSessions: [SweepSession] {
         if showAllSweeps {
-            return appState.archiveSessions
+            return appState.sweepSessions
         }
-        return Array(appState.archiveSessions.prefix(3))
+        return Array(appState.sweepSessions.prefix(3))
     }
 
     private var undoSection: some View {
         Section("Undo Sweeps") {
-            if appState.archiveSessions.isEmpty {
+            if appState.sweepSessions.isEmpty {
                 Text("No recent sweeps")
                     .foregroundColor(.secondary)
             } else {
@@ -91,11 +91,11 @@ struct SettingsView: View {
                     }
                     .foregroundColor(.primary)
                 }
-                if appState.archiveSessions.count > 3 && !showAllSweeps {
+                if appState.sweepSessions.count > 3 && !showAllSweeps {
                     Button {
                         showAllSweeps = true
                     } label: {
-                        Text("Show More (\(appState.archiveSessions.count - 3) more)")
+                        Text("Show More (\(appState.sweepSessions.count - 3) more)")
                             .foregroundColor(.blue)
                     }
                 }
@@ -103,7 +103,7 @@ struct SettingsView: View {
         }
     }
 
-    private func sweepRowLabel(for session: ArchiveSession) -> some View {
+    private func sweepRowLabel(for session: SweepSession) -> some View {
         HStack {
             VStack(alignment: .leading) {
                 Text("\(session.count) emails")

@@ -6,7 +6,7 @@
 import SwiftUI
 
 struct SweepSessionDetailView: View {
-    @State var session: ArchiveSession
+    @State var session: SweepSession
     let onRestore: () -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -121,7 +121,7 @@ struct SweepSessionDetailView: View {
             session = updated
             appState.updateSession(updated)
         } else {
-            appState.clearArchiveSession(session)
+            appState.clearSweepSession(session)
             dismiss()
         }
 
@@ -138,7 +138,7 @@ struct SweepSessionDetailView: View {
     private func restoreSession() async {
         do {
             try await UnifiedInboxService.shared.restoreThreads(threads, wasArchived: session.wasArchived)
-            appState.clearArchiveSession(session)
+            appState.clearSweepSession(session)
             await viewModel.reloadAfterUndo(session: session)
             onRestore()
             dismiss()

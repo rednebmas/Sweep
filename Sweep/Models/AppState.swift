@@ -17,9 +17,9 @@ class AppState: ObservableObject {
         }
     }
 
-    @Published var archiveSessions: [ArchiveSession] = [] {
+    @Published var sweepSessions: [SweepSession] = [] {
         didSet {
-            saveArchiveSessions()
+            saveSweepSessions()
         }
     }
 
@@ -47,7 +47,7 @@ class AppState: ObservableObject {
         let savedTimestamp = UserDefaults.standard.object(forKey: "lastOpenedTimestamp") as? Date
         self.lastOpenedTimestamp = savedTimestamp
         self.isFirstLaunch = savedTimestamp == nil
-        self.archiveSessions = Self.loadArchiveSessions()
+        self.sweepSessions = Self.loadSweepSessions()
         self.snippetLines = UserDefaults.standard.object(forKey: "snippetLines") as? Int ?? 3
         self.archiveOnBackground = UserDefaults.standard.bool(forKey: "archiveOnBackground")
         self.manualSweep = UserDefaults.standard.object(forKey: "manualSweep") as? Bool ?? true
@@ -68,34 +68,34 @@ class AppState: ObservableObject {
         }
     }
 
-    func addArchiveSession(_ session: ArchiveSession) {
-        archiveSessions.insert(session, at: 0)
+    func addSweepSession(_ session: SweepSession) {
+        sweepSessions.insert(session, at: 0)
         // Keep only last 10 sessions
-        if archiveSessions.count > 10 {
-            archiveSessions = Array(archiveSessions.prefix(10))
+        if sweepSessions.count > 10 {
+            sweepSessions = Array(sweepSessions.prefix(10))
         }
     }
 
-    private func saveArchiveSessions() {
-        if let data = try? JSONEncoder().encode(archiveSessions) {
+    private func saveSweepSessions() {
+        if let data = try? JSONEncoder().encode(sweepSessions) {
             UserDefaults.standard.set(data, forKey: "archiveSessions")
         }
     }
 
-    private static func loadArchiveSessions() -> [ArchiveSession] {
+    private static func loadSweepSessions() -> [SweepSession] {
         guard let data = UserDefaults.standard.data(forKey: "archiveSessions"),
-              let sessions = try? JSONDecoder().decode([ArchiveSession].self, from: data) else {
+              let sessions = try? JSONDecoder().decode([SweepSession].self, from: data) else {
             return []
         }
         return sessions
     }
 
-    func updateSession(_ session: ArchiveSession) {
-        guard let index = archiveSessions.firstIndex(where: { $0.id == session.id }) else { return }
-        archiveSessions[index] = session
+    func updateSession(_ session: SweepSession) {
+        guard let index = sweepSessions.firstIndex(where: { $0.id == session.id }) else { return }
+        sweepSessions[index] = session
     }
 
-    func clearArchiveSession(_ session: ArchiveSession) {
-        archiveSessions.removeAll { $0.id == session.id }
+    func clearSweepSession(_ session: SweepSession) {
+        sweepSessions.removeAll { $0.id == session.id }
     }
 }

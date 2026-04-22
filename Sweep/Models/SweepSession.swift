@@ -1,5 +1,5 @@
 //
-//  ArchiveSession.swift
+//  SweepSession.swift
 //  Sweep
 //
 
@@ -59,5 +59,3 @@ struct SweepSession: Identifiable, Codable {
         return formatter.string(from: timestamp)
     }
 }
-
-typealias ArchiveSession = SweepSession
