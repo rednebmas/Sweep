@@ -31,18 +31,11 @@ struct EmailListView: View {
                     .ignoresSafeArea()
                 }
                 VStack(spacing: 0) {
-                    if !keptStore.recentThreads.isEmpty {
-                        KeptEmailsCarouselView(
-                            threads: keptStore.recentThreads,
-                            onSeeAll: { showingKeptSheet = true },
-                            onTap: { selectedThread = $0 },
-                            onUnkeep: { viewModel.unkeep($0) }
-                        )
-                        .transaction { $0.animation = nil }
-                    }
                     if viewModel.error != nil {
+                        keptCarousel
                         errorView
                     } else if viewModel.threads.isEmpty && !viewModel.isLoading {
+                        keptCarousel
                         emptyView
                     } else {
                         emailList
@@ -142,8 +135,25 @@ struct EmailListView: View {
         return UIMenu(children: actions)
     }
 
+    @ViewBuilder
+    private var keptCarousel: some View {
+        if !keptStore.recentThreads.isEmpty {
+            KeptEmailsCarouselView(
+                threads: keptStore.recentThreads,
+                onSeeAll: { showingKeptSheet = true },
+                onTap: { selectedThread = $0 },
+                onUnkeep: { viewModel.unkeep($0) }
+            )
+            .transaction { $0.animation = nil }
+        }
+    }
+
     private var emailList: some View {
         List {
+            keptCarousel
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             ForEach(viewModel.threads) { thread in
                 ContextMenuWrapper(
                     content: EmailRowView(thread: thread, snippetLines: appState.snippetLines, showAccountIndicator: accountManager.hasMultipleAccounts),
