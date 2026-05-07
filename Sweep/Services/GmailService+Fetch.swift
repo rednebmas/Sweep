@@ -38,14 +38,21 @@ extension GmailService {
         keptStore.addKeptBatch(threads)
     }
 
+    private static let maxConcurrentDetailFetches = 5
+
     private func fetchThreadDetails(for refs: [ThreadRef]) async throws -> [EmailThread] {
         try await withThrowingTaskGroup(of: EmailThread?.self) { group in
-            for ref in refs {
+            var iterator = refs.makeIterator()
+            for _ in 0..<Self.maxConcurrentDetailFetches {
+                guard let ref = iterator.next() else { break }
                 group.addTask { try await self.fetchThreadDetail(ref.id) }
             }
             var threads: [EmailThread] = []
-            for try await thread in group {
+            while let thread = try await group.next() {
                 if let thread { threads.append(thread) }
+                if let ref = iterator.next() {
+                    group.addTask { try await self.fetchThreadDetail(ref.id) }
+                }
             }
             return threads
         }
