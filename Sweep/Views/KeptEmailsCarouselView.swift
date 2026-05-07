@@ -62,7 +62,7 @@ struct KeptEmailsCarouselView: View {
             Text(thread.cleanSubject)
                 .font(.caption)
                 .foregroundColor(.secondary)
-                .lineLimit(2)
+                .lineLimit(2, reservesSpace: true)
         }
         .frame(width: 150, alignment: .topLeading)
         .padding(10)
