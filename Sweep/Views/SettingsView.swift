@@ -16,6 +16,7 @@ struct SettingsView: View {
         List {
             SubscriptionSectionView()
             accountSection
+            statsSection
             displaySection
             behaviorSection
             undoSection
@@ -45,6 +46,29 @@ struct SettingsView: View {
                 Label("Add Account", systemImage: "plus.circle")
             }
         }
+    }
+
+    private var statsSection: some View {
+        Section("Stats") {
+            statsRow(label: "Swept", count: appState.totalSwept)
+            statsRow(label: "Kept", count: appState.totalKept)
+        }
+    }
+
+    private func statsRow(label: String, count: Int) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(statsLabel(count: count))
+                .foregroundColor(.secondary)
+        }
+    }
+
+    private func statsLabel(count: Int) -> String {
+        let total = appState.totalSwept + appState.totalKept
+        guard total > 0 else { return "\(count)" }
+        let pct = Int((Double(count) / Double(total) * 100).rounded())
+        return "\(count) (\(pct)%)"
     }
 
     private var displaySection: some View {
