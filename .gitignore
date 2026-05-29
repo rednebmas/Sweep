@@ -11,3 +11,5 @@ Pods/
 node_modules/
 dist/
 fastlane/report.xml
+fastlane/.env
+.env
