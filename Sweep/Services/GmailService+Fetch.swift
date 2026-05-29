@@ -25,10 +25,23 @@ extension GmailService {
 
     private func fetchThreadList(url: URL) async throws -> [EmailThread] {
         guard isAuthenticated else { throw GmailError.notAuthenticated }
-        let request = try await authorizedRequest(url)
-        let response: ThreadListResponse = try await performRequest(request)
-        guard let threadRefs = response.threads else { return [] }
-        return try await fetchThreadDetails(for: threadRefs)
+        var refs: [ThreadRef] = []
+        var pageURL: URL? = url
+        while let current = pageURL {
+            let request = try await authorizedRequest(current)
+            let response: ThreadListResponse = try await performRequest(request)
+            refs.append(contentsOf: response.threads ?? [])
+            pageURL = response.nextPageToken.flatMap { Self.appending(pageToken: $0, to: current) }
+        }
+        return try await fetchThreadDetails(for: refs)
+    }
+
+    private static func appending(pageToken token: String, to url: URL) -> URL? {
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        var items = (components.queryItems ?? []).filter { $0.name != "pageToken" }
+        items.append(URLQueryItem(name: "pageToken", value: token))
+        components.queryItems = items
+        return components.url
     }
 
     func restoreKeptThreads() async {

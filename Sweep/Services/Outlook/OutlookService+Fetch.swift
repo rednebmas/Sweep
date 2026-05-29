@@ -19,13 +19,13 @@ extension OutlookService {
         let encodedFilter = filter.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? filter
         let select = "id,conversationId,subject,bodyPreview,from,receivedDateTime,hasAttachments,isRead"
 
-        let url = URL(string: "\(baseURL)/mailFolders/inbox/messages?$filter=\(encodedFilter)&$select=\(select)&$top=100&$orderby=receivedDateTime desc")!
-
-        let request = try await authorizedRequest(url)
-        let response: OutlookMessageListResponse = try await performRequest(request)
-
-        guard let messages = response.value else {
-            return []
+        var nextURL: URL? = URL(string: "\(baseURL)/mailFolders/inbox/messages?$filter=\(encodedFilter)&$select=\(select)&$top=100&$orderby=receivedDateTime desc")
+        var messages: [OutlookMessage] = []
+        while let url = nextURL {
+            let request = try await authorizedRequest(url)
+            let response: OutlookMessageListResponse = try await performRequest(request)
+            messages.append(contentsOf: response.value ?? [])
+            nextURL = response.odataNextLink.flatMap(URL.init)
         }
 
         return messages.map(emailThread(from:))
