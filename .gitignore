@@ -13,3 +13,9 @@ dist/
 fastlane/report.xml
 fastlane/.env
 .env
+
+# Signing material — keep out of git
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
