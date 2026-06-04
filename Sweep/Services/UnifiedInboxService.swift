@@ -9,12 +9,14 @@ enum EmailError: Error, LocalizedError {
     case providerNotFound
     case noEnabledAccounts
     case allProvidersFailed
+    case notSupported
 
     var errorDescription: String? {
         switch self {
         case .providerNotFound: return "Email provider not found"
         case .noEnabledAccounts: return "No enabled accounts"
         case .allProvidersFailed: return "Unable to connect to email accounts"
+        case .notSupported: return "Replying isn't supported for this account"
         }
     }
 }
@@ -135,5 +137,23 @@ class UnifiedInboxService: ObservableObject {
             throw EmailError.providerNotFound
         }
         try await provider.blockSender(thread.fromEmail)
+    }
+
+    func supportsReply(for thread: EmailThread) -> Bool {
+        accountManager.provider(for: thread.accountId)?.supportsReply ?? false
+    }
+
+    func fetchReplyContext(for thread: EmailThread) async throws -> ReplyContext {
+        guard let provider = accountManager.provider(for: thread.accountId) else {
+            throw EmailError.providerNotFound
+        }
+        return try await provider.fetchReplyContext(thread.id)
+    }
+
+    func sendReply(_ reply: OutgoingReply, for thread: EmailThread) async throws {
+        guard let provider = accountManager.provider(for: thread.accountId) else {
+            throw EmailError.providerNotFound
+        }
+        try await provider.sendReply(reply)
     }
 }

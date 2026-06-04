@@ -33,6 +33,10 @@ protocol EmailProviderProtocol: AnyObject {
 
     func fetchAttachments(_ threadId: String) async throws -> [EmailAttachment]
     func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data
+
+    var supportsReply: Bool { get }
+    func fetchReplyContext(_ threadId: String) async throws -> ReplyContext
+    func sendReply(_ reply: OutgoingReply) async throws
 }
 
 extension EmailProviderProtocol {
@@ -42,5 +46,13 @@ extension EmailProviderProtocol {
     func fetchAttachments(_ threadId: String) async throws -> [EmailAttachment] { [] }
     func downloadAttachment(_ attachment: EmailAttachment) async throws -> Data {
         throw EmailError.providerNotFound
+    }
+
+    var supportsReply: Bool { false }
+    func fetchReplyContext(_ threadId: String) async throws -> ReplyContext {
+        throw EmailError.notSupported
+    }
+    func sendReply(_ reply: OutgoingReply) async throws {
+        throw EmailError.notSupported
     }
 }

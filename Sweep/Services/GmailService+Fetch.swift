@@ -91,6 +91,13 @@ extension GmailService {
         return parseThread(response, firstMessage: firstMessage)
     }
 
+    func fetchFullThread(_ threadId: String) async throws -> ThreadFullResponse {
+        guard isAuthenticated else { throw GmailError.notAuthenticated }
+        let url = URL(string: "\(baseURL)/threads/\(threadId)?format=full")!
+        let request = try await authorizedRequest(url)
+        return try await performRequest(request)
+    }
+
     private func parseThread(_ response: ThreadFullResponse, firstMessage: MessageFullResponse) -> EmailThread {
         let headers = firstMessage.payload?.headers ?? []
 
@@ -149,12 +156,8 @@ extension GmailService {
     }
 
     func parseFromHeader(_ from: String) -> (name: String, email: String) {
-        if let match = from.range(of: "<.*>", options: .regularExpression) {
-            let email = String(from[match]).trimmingCharacters(in: CharacterSet(charactersIn: "<>"))
-            let name = String(from[..<match.lowerBound]).trimmingCharacters(in: .whitespaces)
-            return (name.isEmpty ? email : name, email)
-        }
-        return (from, from)
+        guard let participant = EmailParticipant.parse(from) else { return (from, from) }
+        return (participant.displayName, participant.email)
     }
 
     func parseDateHeader(_ dateString: String?) -> Date {

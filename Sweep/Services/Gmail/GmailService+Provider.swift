@@ -8,6 +8,7 @@ import Foundation
 extension GmailService: EmailProviderProtocol {
     var providerType: EmailProviderType { .gmail }
     var serverAuthCode: String? { auth.serverAuthCode }
+    var supportsReply: Bool { true }
 
     func refreshTokenIfNeeded() async throws {
         try await auth.refreshTokenIfNeeded()

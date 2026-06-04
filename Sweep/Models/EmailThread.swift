@@ -44,11 +44,6 @@ struct EmailThread: Identifiable, Codable, Hashable {
     }
 
     var cleanSubject: String {
-        // Strip leading/trailing quotes that Gmail sometimes adds
-        var cleaned = subject
-        while cleaned.hasPrefix("\"") && cleaned.hasSuffix("\"") && cleaned.count > 2 {
-            cleaned = String(cleaned.dropFirst().dropLast())
-        }
-        return cleaned.trimmingCharacters(in: .whitespaces)
+        SubjectFormatter.stripWrappingQuotes(subject)
     }
 }

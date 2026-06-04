@@ -77,6 +77,11 @@ struct AttachmentResponse: Codable {
     let data: String
 }
 
+struct SendMessageRequest: Codable {
+    let raw: String
+    let threadId: String
+}
+
 
 // MARK: - Label Types
 

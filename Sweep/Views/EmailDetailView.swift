@@ -11,6 +11,8 @@ struct EmailDetailView: View {
     @State private var emailBody: String?
     @State private var attachments: [EmailAttachment] = []
     @State private var isLoading = true
+    @State private var replyMode: ReplyMode?
+    @State private var showSentToast = false
 
     var body: some View {
         NavigationStack {
@@ -23,6 +25,11 @@ struct EmailDetailView: View {
             .navigationTitle("Email")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if UnifiedInboxService.shared.supportsReply(for: thread) {
+                        replyMenu
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
@@ -32,6 +39,29 @@ struct EmailDetailView: View {
             .task {
                 await loadBody()
             }
+            .sheet(item: $replyMode) { mode in
+                ReplyComposerView(viewModel: ReplyComposerViewModel(thread: thread, mode: mode)) {
+                    showSentToast = true
+                }
+            }
+            .toast(isPresented: $showSentToast, message: "Reply sent")
+        }
+    }
+
+    private var replyMenu: some View {
+        Menu {
+            Button {
+                replyMode = .reply
+            } label: {
+                Label("Reply", systemImage: "arrowshape.turn.up.left")
+            }
+            Button {
+                replyMode = .replyAll
+            } label: {
+                Label("Reply All", systemImage: "arrowshape.turn.up.left.2")
+            }
+        } label: {
+            Image(systemName: "arrowshape.turn.up.left")
         }
     }
 
